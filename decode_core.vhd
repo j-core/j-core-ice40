@@ -158,16 +158,18 @@ begin
     system_op(event_i)
     -- Interrupts, (address) errors, reset and break
       when delay_slot = '0' and event_i.en = '1' and (
-           ( maskint = '0' and event_i.cmd = INTERRUPT and ( ibit < event_i.lvl or event_i.msk = '1' ) ) or
-           ( event_i.cmd = ERROR or event_i.cmd = RESET_CPU or event_i.cmd = BREAK ) ) else
+           ( maskint = '0' and event_i.cmd = INT and ( ibit < event_i.lvl or event_i.msk = '1' ) ) 
+-- or
+--           ( event_i.cmd = ERR or event_i.cmd = RST or event_i.cmd = BREAK ) 
+) else
     -- Slot Illegal Instruction
-    system_op(SLOT_ILLEGAL)
+    system_op(SLOT_ILLEGAL_I)
       when delay_slot = '1' and (illegal_delay_slot or illegal_instr) = '1' else
     -- General Illegal Instruction
-    system_op(GENERAL_ILLEGAL)
+    system_op(GENERAL_ILLEGAL_I)
       when illegal_instr = '1' else
     -- Break Instruction
-    system_op(BREAK)
+    system_op(BREAK_I)
       when delay_slot = '0' and enter_debug = '1' else
     -- Normal instruction
     normal_op(if_dr);

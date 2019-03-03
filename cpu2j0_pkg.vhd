@@ -37,7 +37,7 @@ package cpu2j0_pack is
       rdy  : std_logic;
    end record;
 
-   type cpu_debug_cmd_t is (BREAK, STEP, INSERT, CONTINUE);
+   type cpu_debug_cmd_t is (BRK, STEP, INSERT, CONTINUE);
 
    type cpu_debug_i_t is record
       en   : std_logic;
@@ -46,9 +46,9 @@ package cpu2j0_pack is
       d    : std_logic_vector(31 downto 0);
       d_en : std_logic;
    end record;
-   constant CPU_DEBUG_NOP : cpu_debug_i_t := (en => '0', cmd => BREAK, ir => (others => '0'), d => (others => '0'), d_en => '0');
+   constant CPU_DEBUG_NOP : cpu_debug_i_t := (en => '0', cmd => BRK, ir => (others => '0'), d => (others => '0'), d_en => '0');
 
-   type cpu_event_cmd_t is (INTERRUPT, ERROR, BREAK, RESET_CPU);
+   type cpu_event_cmd_t is (INT, ERR, BREAK, RST);
 
    type cpu_event_i_t is record
       en   : std_logic;
@@ -58,7 +58,7 @@ package cpu2j0_pack is
       lvl  : std_logic_vector(3 downto 0);
    end record;
    constant NULL_CPU_EVENT_I : cpu_event_i_t := (en => '0',
-                                                 cmd => INTERRUPT,
+                                                 cmd => INT,
                                                  vec => (others => '0'),
                                                  msk => '0',
                                                  lvl => (others => '1'));

@@ -275,13 +275,13 @@ package decode_pack is
     constant DEC_CORE_RESET : decode_core_reg_t := (maskint => '0', delay_slot => '0', id_stall => '0', instr_seq_zero => '0', op => (plane => SYSTEM_INSTR, code => x"0300", addr => x"01"), ilevel => x"0");
     -- Reset vector specific to the microcode ROM. Uses a different starting addr.
     constant DEC_CORE_ROM_RESET : decode_core_reg_t := (maskint => '0', delay_slot => '0', id_stall => '0', instr_seq_zero => '0', op => (plane => SYSTEM_INSTR, code => x"0300", addr => x"da"), ilevel => x"0");
-    type system_instr_t is (BREAK, ERROR, GENERAL_ILLEGAL, INTERRUPT, RESET_CPU, SLOT_ILLEGAL);
+    type system_instr_t is (BREAK_I, ERROR_I, GENERAL_ILLEGAL_I, INTERRUPT_I, RESET_CPU_I, SLOT_ILLEGAL_I);
     type system_instr_addr_array is array (system_instr_t range <>) of std_logic_vector(7 downto 0);
-    constant system_instr_rom_addrs : system_instr_addr_array := (BREAK => x"f2", ERROR => x"e9", GENERAL_ILLEGAL => x"c9", INTERRUPT => x"e0", RESET_CPU => x"d9", SLOT_ILLEGAL => x"d1");
+    constant system_instr_rom_addrs : system_instr_addr_array := (BREAK_I => x"f2", ERROR_I => x"e9", GENERAL_ILLEGAL_I => x"c9", INTERRUPT_I => x"e0", RESET_CPU_I => x"d9", SLOT_ILLEGAL_I => x"d1");
     type system_instr_code_array is array (system_instr_t range <>) of std_logic_vector(11 downto 8);
-    constant system_instr_codes : system_instr_code_array := (BREAK => x"2", ERROR => x"1", GENERAL_ILLEGAL => x"7", INTERRUPT => x"0", RESET_CPU => x"3", SLOT_ILLEGAL => x"6");
+    constant system_instr_codes : system_instr_code_array := (BREAK_I => x"2", ERROR_I => x"1", GENERAL_ILLEGAL_I => x"7", INTERRUPT_I => x"0", RESET_CPU_I => x"3", SLOT_ILLEGAL_I => x"6");
     type system_event_code_array is array (cpu_event_cmd_t range <>) of std_logic_vector(11 downto 8);
-    constant system_event_codes : system_event_code_array := (INTERRUPT => x"0", ERROR => x"1", BREAK => x"2", RESET_CPU => x"3");
+    constant system_event_codes : system_event_code_array := (INT => x"0", ERR => x"1", BREAK => x"2", RST => x"3");
     type system_event_instr_array is array (cpu_event_cmd_t range <>) of system_instr_t;
-    constant system_event_instrs : system_event_instr_array := (INTERRUPT => INTERRUPT, ERROR => ERROR, BREAK => BREAK, RESET_CPU => RESET_CPU);
+    constant system_event_instrs : system_event_instr_array := (INT => INTERRUPT_I, ERR => ERROR_I, BREAK => BREAK_I, RST => RESET_CPU_I);
 end;

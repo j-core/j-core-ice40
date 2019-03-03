@@ -103,7 +103,7 @@ begin
 
   with debug_i_cmd select
     debug_i.cmd <=
-    BREAK when "00",
+    BRK when "00",
     STEP when "01",
     INSERT when "10",
     CONTINUE when others;

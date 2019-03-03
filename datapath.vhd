@@ -223,7 +223,7 @@ begin
             next_state := AWAIT_IF;
             -- stop requesting debug mode once we're in debug mode
             this.enter_debug := (others => '0');
-          elsif this.debug_state = RUN and debug_i.en = '1' and debug_i.cmd = BREAK then
+          elsif this.debug_state = RUN and debug_i.en = '1' and debug_i.cmd = BRK then
             -- schedule entering debug mode
             -- TODO: we could probably set enter_debug(0) = '1' to
             -- immediately enter, but need to be careful that mask_int is
@@ -248,7 +248,7 @@ begin
           elsif this.debug_state = READY and debug_i.en = '1' then
             -- handle debug command
             case debug_i.cmd is
-              when BREAK =>
+              when BRK =>
                 -- A BREAK cmd when already in the READY state does nothing
                 this.debug_o.ack := '1';
               when INSERT =>
