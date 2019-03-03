@@ -1,0 +1,1 @@
+verific -vhdl93 cpu2j0_pkg.vhd components_pkg.vhd mult_pkg.vhd decode_pkg.vhd decode_body.vhd datapath_pkg.vhd cpu.vhd decode.vhd decode_core.vhd decode_table.vhd decode_table_reverse.vhd datapath.vhd register_file.vhd mult.vhd 
