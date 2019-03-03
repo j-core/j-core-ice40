@@ -18,9 +18,9 @@ use ieee.numeric_std.all;
 
 entity register_file is
   generic (
-    ADDR_WIDTH : integer;
-    NUM_REGS : integer;
-    REG_WIDTH : integer);
+    ADDR_WIDTH : integer := 5;
+    NUM_REGS : integer := 32;
+    REG_WIDTH : integer := 32);
   port (
     clk     : in  std_logic;
     rst     : in  std_logic;
@@ -109,6 +109,9 @@ architecture two_bank of register_file is
   signal bank_a, bank_b : ram_type;
   signal reg0 : data_t;
 
+  signal da :  std_logic_vector(REG_WIDTH-1 downto 0);
+  signal db :  std_logic_vector(REG_WIDTH-1 downto 0);
+
   signal ex_pipes : ex_pipeline_t;
   signal wb_pipe : reg_pipe_t;
 
@@ -121,14 +124,19 @@ begin
   ex_pipes(0).addr <= w_addr_ex;
   ex_pipes(0).data <= din_ex;
 
-  dout_a <= read_with_forwarding(addr_ra, bank_a(to_reg_index(addr_ra)), wb_pipe, ex_pipes);
-  dout_b <= read_with_forwarding(addr_rb, bank_b(to_reg_index(addr_rb)), wb_pipe, ex_pipes);
+  dout_a <= read_with_forwarding(addr_ra,     da, wb_pipe, ex_pipes);
+  dout_b <= read_with_forwarding(addr_rb,     db, wb_pipe, ex_pipes);
   dout_0 <= read_with_forwarding(ZERO_ADDR, reg0, wb_pipe, ex_pipes);
   
   process (clk, rst, ce, wb_pipe, ex_pipes)
     variable addr : integer;
     variable data : data_t;
   begin
+    if (falling_edge(clk)) then
+       da <= bank_a(to_reg_index(addr_ra));
+       db <= bank_b(to_reg_index(addr_rb));
+    end if;
+    
     if rst = '1' then
       addr := 0;
       data := (others => '0');
