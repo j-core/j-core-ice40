@@ -82,6 +82,7 @@ led(int v)
 void
 main_sh (void)
 {
+  volatile int i;
   led(0x40);
 
   uart_set_baudrate ();
@@ -101,4 +102,11 @@ main_sh (void)
   putstr ("GDB Stub for HS-2J0 SH2 ROM\n");
   putstr (version_string);
   led(0x50);
+
+  for (;;) {
+    for (i=0; i<10; i++) {}
+    led(0x55);
+    for (i=0; i<10; i++) {}
+    led(0xaa);
+  } 
 }
