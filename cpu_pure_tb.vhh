@@ -10,6 +10,18 @@ entity cpu_pure_tb is
 end;
 
 architecture behaviour of cpu_pure_tb is
+  function to_hex_string(s: in std_logic_vector) return string is
+  constant hex : string (1 to 16) := "0123456789ABCDEF";
+  variable ss  : std_logic_vector(31 downto 0) := (others => '0');
+  variable ret : string (1 to ss'left/4+1);
+  begin
+    ss(s'range) := s;
+    for i in 0 to ss'left/4 loop
+      ret(i+1) := hex(to_integer(unsigned(ss(ss'left - i*4 downto ss'left - i*4 -3)))+1);
+    end loop;
+   return ret;
+  end to_hex_string;
+
   type instrd_bus_i_t is array(instr_bus_device_t'left to instr_bus_device_t'right) of cpu_data_i_t;
   type instrd_bus_o_t is array(instr_bus_device_t'left to instr_bus_device_t'right) of cpu_data_o_t;
 
@@ -150,7 +162,7 @@ begin
       wait until clk'event and clk = '1';
       if pio_data_o.wr = '1' and pio_data_o.a = x"ABCD0000" then
         write(l, string'("LED: Write "));
-        -- hwrite(l, pio_data_o.d);
+        write(l, to_hex_string(pio_data_o.d));
         write(l, " at " & time'image(now));
         writeline(output, l);
       end if;
