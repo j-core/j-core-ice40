@@ -27,15 +27,15 @@ begin
   iclk <= not clk;
 
   r : entity work.asymmetric_ram
-    generic map (ADDR_WIDTH => 14)
+    generic map (ADDR_WIDTH => 12)
     port map(clkA => iclk,
              clkB => iclk,
              enA => ibus_i.en,
-             addrA => ibus_i.a(14 downto 1),
+             addrA => ibus_i.a(12 downto 1),
              doA => ibus_o.d,
              enB => db_i.en,
              weB => db_we,
-             addrB => db_i.a(14 downto 2),
+             addrB => db_i.a(12 downto 2),
              diB => db_i.d,
              doB => db_o.d);
              

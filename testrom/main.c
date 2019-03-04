@@ -87,8 +87,10 @@ main_sh (void)
   uart_set_baudrate ();
   led(0x042);
 
+#ifndef NO_TESTS
   putstr ("CPU tests passed\n");
   led(0x043);
+#endif
 
 #ifndef NO_DDR
   putstr ("DDR Init\n");
