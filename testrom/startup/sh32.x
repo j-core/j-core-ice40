@@ -7,8 +7,8 @@ OUTPUT_ARCH(sh)
 
 MEMORY
 {
-	ram    : o = 0x00000000, l = 0x1c00
-	stack  : o = 0x00001ffc, l = 0x03fc
+	ram    : o = 0x00000000, l = 0x1d00
+	stack  : o = 0x00001d00, l = 0x0300
 }
 
 SECTIONS 				

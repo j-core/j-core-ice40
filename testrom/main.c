@@ -104,9 +104,9 @@ main_sh (void)
   led(0x50);
 
   for (;;) {
-    for (i=0; i<10; i++) {}
+    for (i=0; i<100000; i++) {}
     led(0x55);
-    for (i=0; i<10; i++) {}
+    for (i=0; i<100000; i++) {}
     led(0xaa);
   } 
 }

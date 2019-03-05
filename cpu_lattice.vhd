@@ -5,9 +5,12 @@ use std.textio.all;
 
 use work.cpu2j0_pack.all;
 use work.data_bus_pkg.all;
+
+library sb_ice40_components_syn;
+use sb_ice40_components_syn.components.all;
+
 entity cpu_lattice is port (
-   clk : in std_logic;
-   led : out std_logic_vector(7 downto 0));
+   led : inout std_logic_vector(7 downto 0));
 end;
 
 architecture behaviour of cpu_lattice is
@@ -37,7 +40,7 @@ architecture behaviour of cpu_lattice is
   signal event_i : cpu_event_i_t := NULL_CPU_EVENT_I;
   signal event_o : cpu_event_o_t;
 
---  signal clk : std_logic := '1';
+  signal clk : std_logic := '1';
   signal rst : std_logic := '1';
 
   signal dummy : bit;
@@ -46,6 +49,9 @@ architecture behaviour of cpu_lattice is
   signal pio_data_i : cpu_data_i_t := (ack => '0', d => (others => '0'));
   signal data_select : data_bus_device_t;
   signal db_we : std_logic_vector(3 downto 0);
+
+  signal le : std_logic_vector(7 downto 0);
+  signal vh : std_logic;
 begin
   rst <= '1', '0' after 10 ns;
 
@@ -56,6 +62,11 @@ begin
 --    clk <= '1';
 --    wait for 10 ns;
 --  end process;
+
+  vh <= '1';
+
+  ck: SB_HFOSC generic map (clkhf_div => "0b10")
+               port map (clkhfen => vh, clkhf => clk, clkhfpu => vh);
 
   process (data_master_o)
     variable dev : data_bus_device_t;
@@ -120,6 +131,22 @@ begin
              db_o => data_slaves_i(DEV_SRAM));
 
   -- intercept and print PIO and UART writes
+
+  led(7 downto 3) <= le(7 downto 3);
+
+  rgb: SB_RGBA_DRV generic map ( CURRENT_MODE => "0b1",
+                                 RGB0_CURRENT => "0b000001",
+                                 RGB1_CURRENT => "0b000001",
+                                 RGB2_CURRENT => "0b000001")
+              port map ( curren => '1',
+                         rgbleden => '1',
+                         rgb0pwm => le(0),
+                         rgb1pwm => le(1),
+                         rgb2pwm => le(2),
+                         rgb0    => led(0),
+                         rgb1    => led(1),
+                         rgb2    => led(2));
+
   l0: process(clk)
     variable uart_line : line;
     variable l : line;
@@ -130,7 +157,7 @@ begin
 --        write(l, string'("LED: Write "));
 --        write(l, " at " & time'image(now));
 --        writeline(output, l);
-      led <= pio_data_o.d(7 downto 0);
+      le <= pio_data_o.d(7 downto 0);
       end if;
       if data_slaves_o(DEV_UART0).wr = '1' and data_slaves_o(DEV_UART0).a = x"ABCD0104" then
 --        c := character'val(to_integer(unsigned(data_slaves_o(DEV_UART0).d(7 downto 0))));
