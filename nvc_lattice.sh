@@ -11,3 +11,5 @@ nvc --work=sb_ice40_components_syn -a clk_sim.vhd
 nvc -L . -a cpu_lattice.vhd lattice_tb.vhd
 
 nvc -L . -e -V lattice_tb
+
+nvc -L. -r lattice_tb --stop-time=2700ns --wave=out.ghw
