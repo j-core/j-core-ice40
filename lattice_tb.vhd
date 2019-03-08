@@ -20,21 +20,12 @@ architecture beh of lattice_tb is
    return ret;
   end to_hex_string;
 
-  signal clk : std_logic;
   signal led : std_logic_vector(7 downto 0) := x"00";
   signal ol  : std_logic_vector(7 downto 0) := x"00";
 begin
 
-   c0: process
-   begin 
-      clk <= '0';
-      wait for 10 ns;
-      clk <= '1';
-      wait for 10 ns;
-   end process;
-
    fp: entity work.cpu_lattice
-      port map(clk => clk, led => led);
+      port map(led => led);
 
    p0: process(led)
    variable l : line;

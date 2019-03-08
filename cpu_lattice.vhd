@@ -55,14 +55,6 @@ architecture behaviour of cpu_lattice is
 begin
   rst <= '1', '0' after 10 ns;
 
---  clk_gen : process
---  begin
---    clk <= '0';
---    wait for 10 ns;
---    clk <= '1';
---    wait for 10 ns;
---  end process;
-
   vh <= '1';
 
   ck: SB_HFOSC generic map (clkhf_div => "0b10")
@@ -132,20 +124,7 @@ begin
 
   -- intercept and print PIO and UART writes
 
-  led(7 downto 3) <= le(7 downto 3);
-
-  rgb: SB_RGBA_DRV generic map ( CURRENT_MODE => "0b1",
-                                 RGB0_CURRENT => "0b000001",
-                                 RGB1_CURRENT => "0b000001",
-                                 RGB2_CURRENT => "0b000001")
-              port map ( curren => '1',
-                         rgbleden => '1',
-                         rgb0pwm => le(0),
-                         rgb1pwm => le(1),
-                         rgb2pwm => le(2),
-                         rgb0    => led(0),
-                         rgb1    => led(1),
-                         rgb2    => led(2));
+  led <= le;
 
   l0: process(clk)
     variable uart_line : line;
@@ -157,7 +136,7 @@ begin
 --        write(l, string'("LED: Write "));
 --        write(l, " at " & time'image(now));
 --        writeline(output, l);
-      le <= pio_data_o.d(7 downto 0);
+          le <= pio_data_o.d(7 downto 0);
       end if;
       if data_slaves_o(DEV_UART0).wr = '1' and data_slaves_o(DEV_UART0).a = x"ABCD0104" then
 --        c := character'val(to_integer(unsigned(data_slaves_o(DEV_UART0).d(7 downto 0))));
