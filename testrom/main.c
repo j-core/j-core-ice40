@@ -103,10 +103,15 @@ main_sh (void)
   putstr (version_string);
   led(0x50);
 
+  for (i=0; i<800; i++) {}
+  led(0x55);
+  for (i=0; i<800; i++) {}
+  led(0xaa);
+
   for (;;) {
-    for (i=0; i<100000; i++) {}
+    for (i=0; i<1200000; i++) {}
     led(0x55);
-    for (i=0; i<100000; i++) {}
+    for (i=0; i<1200000; i++) {}
     led(0xaa);
   } 
 }

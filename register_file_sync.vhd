@@ -127,8 +127,8 @@ begin
   ex_pipes(0).data <= din_ex;
 
 -- Async read (trasparent) register file.  Later clocked address
-  da <= bank_a(to_reg_index(aa));
-  db <= bank_b(to_reg_index(ab));
+--  da <= bank_a(to_reg_index(aa));
+--  db <= bank_b(to_reg_index(ab));
 
   dout_a <= read_with_forwarding(     aa,     da, wb_pipe, ex_pipes);
   dout_b <= read_with_forwarding(     ab,     db, wb_pipe, ex_pipes);
@@ -155,8 +155,8 @@ begin
        aa <= addr_ra;
        ab <= addr_rb;
 -- Sync read (clocked) register file.  Early address
---       da <= bank_a(to_reg_index(addr_ra));
---       db <= bank_b(to_reg_index(addr_rb));
+       da <= bank_a(to_reg_index(addr_ra));
+       db <= bank_b(to_reg_index(addr_rb));
 
       -- the decoder should never schedule a write to a register for both Z and
       -- W bus at the same time
@@ -178,12 +178,12 @@ begin
           reg0 <= data;
         end if;
 -- Sync read bypass
---        if (addr = to_reg_index(addr_ra)) then
---          da <= data;
---        end if;
---        if (addr = to_reg_index(addr_rb)) then
---          db <= data;
---        end if;
+        if (addr = to_reg_index(addr_ra)) then
+          da <= data;
+        end if;
+        if (addr = to_reg_index(addr_rb)) then
+          db <= data;
+        end if;
 
       end if;
       ex_pipes(2) <= ex_pipes(1);

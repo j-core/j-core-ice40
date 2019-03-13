@@ -166,8 +166,11 @@ begin
     mem.lock <= pipeline_r.ex1.mem_lock;
     mem.size <= pipeline_r.ex1.mem_size;
     reg.num_w <= pipeline_r.wb3.regnum_w;
-    reg.num_x <= pipeline_r.ex1.regnum_x;
-    reg.num_y <= pipeline_r.ex1.regnum_y;
+--  Make read regnum valid at the end of decode, allow clocked read regfile
+    reg.num_x <= ex.regnum_x;
+    reg.num_y <= ex.regnum_y;
+--    reg.num_x <= pipeline_r.ex1.regnum_x;
+--    reg.num_y <= pipeline_r.ex1.regnum_y;
     reg.num_z <= pipeline_r.ex1.regnum_z;
     buses.x_sel <= pipeline_r.ex1.xbus_sel;
     buses.y_sel <= pipeline_r.ex1.ybus_sel;
