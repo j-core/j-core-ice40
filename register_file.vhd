@@ -106,7 +106,7 @@ architecture two_bank of register_file is
   constant ZERO_ADDR : addr_t := (others => '0');
 
   type ram_type is array(0 to NUM_REGS - 1) of data_t;
-  signal bank_a, bank_b : ram_type;
+  signal bank_a, bank_b : ram_type := (others => (others => '0'));
   signal reg0 : data_t;
 
   signal da :  std_logic_vector(REG_WIDTH-1 downto 0);
