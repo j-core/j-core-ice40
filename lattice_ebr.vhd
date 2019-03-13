@@ -28,7 +28,7 @@ architecture behavioral of simple_ram is
   signal ram : rom_t := work.bootrom.rom;
 begin
 
-  process (clk)
+  process (clk, en)
     variable read : std_logic_vector(31 downto 0);
   begin
     if clk'event and clk = '1' and en = '1' then

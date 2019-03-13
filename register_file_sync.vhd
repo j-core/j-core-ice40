@@ -144,13 +144,17 @@ begin
       wr_data_o <= (others => '0');
       reg0 <= (others => '0');
       ex_pipes(1) <= (
-    en   => '0',
-    data => (others => '0'),
-    addr => (others => '0'));
+        en   => '0',
+        data => (others => '0'),
+        addr => (others => '0'));
       ex_pipes(2) <= (
-    en   => '0',
-    data => (others => '0'),
-    addr => (others => '0'));
+        en   => '0',
+        data => (others => '0'),
+        addr => (others => '0'));
+      aa <= (others => '0');
+      ab <= (others => '0');
+      da <= (others => '0');
+      db <= (others => '0');
     elsif (rising_edge(clk) and ce = '1') then
        aa <= addr_ra;
        ab <= addr_rb;
