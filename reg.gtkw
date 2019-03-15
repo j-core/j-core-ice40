@@ -1,15 +1,15 @@
 [*]
 [*] GTKWave Analyzer v3.3.99 (w)1999-2019 BSI
-[*] Fri Mar 15 02:52:16 2019
+[*] Fri Mar 15 20:45:47 2019
 [*]
 [dumpfile] "/Users/jeff/work/J1/jcore-j1/out.ghw"
-[dumpfile_mtime] "Fri Mar 15 02:51:31 2019"
+[dumpfile_mtime] "Fri Mar 15 20:45:09 2019"
 [dumpfile_size] 317025
 [savefile] "/Users/jeff/work/J1/jcore-j1/reg.gtkw"
 [timestart] 0
 [size] 1680 878
 [pos] -1 -1
-*-28.788557 0 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+*-27.788557 1374978000 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
 [treeopen] top.
 [treeopen] top.lattice_tb.
 [treeopen] top.lattice_tb.fp.
@@ -25,7 +25,7 @@
 [sst_width] 193
 [signals_width] 159
 [sst_expanded] 1
-[sst_vpaned_height] 459
+[sst_vpaned_height] 639
 @28
 top.lattice_tb.fp.rst
 top.lattice_tb.fp.clk
@@ -47,7 +47,7 @@ top.lattice_tb.fp.cpu1.u_datapath.u_regfile.we_wb
 @22
 #{top.lattice_tb.fp.cpu1.u_datapath.u_regfile.wr_data_o[31:0]} top.lattice_tb.fp.cpu1.u_datapath.u_regfile.wr_data_o[31] top.lattice_tb.fp.cpu1.u_datapath.u_regfile.wr_data_o[30] top.lattice_tb.fp.cpu1.u_datapath.u_regfile.wr_data_o[29] top.lattice_tb.fp.cpu1.u_datapath.u_regfile.wr_data_o[28] top.lattice_tb.fp.cpu1.u_datapath.u_regfile.wr_data_o[27] top.lattice_tb.fp.cpu1.u_datapath.u_regfile.wr_data_o[26] top.lattice_tb.fp.cpu1.u_datapath.u_regfile.wr_data_o[25] top.lattice_tb.fp.cpu1.u_datapath.u_regfile.wr_data_o[24] top.lattice_tb.fp.cpu1.u_datapath.u_regfile.wr_data_o[23] top.lattice_tb.fp.cpu1.u_datapath.u_regfile.wr_data_o[22] top.lattice_tb.fp.cpu1.u_datapath.u_regfile.wr_data_o[21] top.lattice_tb.fp.cpu1.u_datapath.u_regfile.wr_data_o[20] top.lattice_tb.fp.cpu1.u_datapath.u_regfile.wr_data_o[19] top.lattice_tb.fp.cpu1.u_datapath.u_regfile.wr_data_o[18] top.lattice_tb.fp.cpu1.u_datapath.u_regfile.wr_data_o[17] top.lattice_tb.fp.cpu1.u_datapath.u_regfile.wr_data_o[16] top.lattice_tb.fp.cpu1.u_datapath.u_regfile.wr_data_o[15] top.lattice_tb.fp.cpu1.u_datapath.u_regfile.wr_data_o[14] top.lattice_tb.fp.cpu1.u_datapath.u_regfile.wr_data_o[13] top.lattice_tb.fp.cpu1.u_datapath.u_regfile.wr_data_o[12] top.lattice_tb.fp.cpu1.u_datapath.u_regfile.wr_data_o[11] top.lattice_tb.fp.cpu1.u_datapath.u_regfile.wr_data_o[10] top.lattice_tb.fp.cpu1.u_datapath.u_regfile.wr_data_o[9] top.lattice_tb.fp.cpu1.u_datapath.u_regfile.wr_data_o[8] top.lattice_tb.fp.cpu1.u_datapath.u_regfile.wr_data_o[7] top.lattice_tb.fp.cpu1.u_datapath.u_regfile.wr_data_o[6] top.lattice_tb.fp.cpu1.u_datapath.u_regfile.wr_data_o[5] top.lattice_tb.fp.cpu1.u_datapath.u_regfile.wr_data_o[4] top.lattice_tb.fp.cpu1.u_datapath.u_regfile.wr_data_o[3] top.lattice_tb.fp.cpu1.u_datapath.u_regfile.wr_data_o[2] top.lattice_tb.fp.cpu1.u_datapath.u_regfile.wr_data_o[1] top.lattice_tb.fp.cpu1.u_datapath.u_regfile.wr_data_o[0]
 top.lattice_tb.fp.cpu1.u_datapath.u_regfile.aw
-@29
+@28
 top.lattice_tb.fp.cpu1.u_datapath.u_regfile.we
 @200
 -
@@ -61,7 +61,9 @@ top.lattice_tb.fp.cpu1.u_datapath.u_regfile.we
 @22
 #{top.lattice_tb.fp.cpu1.u_datapath.u_regfile.addr_rb[4:0]} top.lattice_tb.fp.cpu1.u_datapath.u_regfile.addr_rb[4] top.lattice_tb.fp.cpu1.u_datapath.u_regfile.addr_rb[3] top.lattice_tb.fp.cpu1.u_datapath.u_regfile.addr_rb[2] top.lattice_tb.fp.cpu1.u_datapath.u_regfile.addr_rb[1] top.lattice_tb.fp.cpu1.u_datapath.u_regfile.addr_rb[0]
 #{top.lattice_tb.fp.cpu1.u_datapath.u_regfile.ab[4:0]} top.lattice_tb.fp.cpu1.u_datapath.u_regfile.ab[4] top.lattice_tb.fp.cpu1.u_datapath.u_regfile.ab[3] top.lattice_tb.fp.cpu1.u_datapath.u_regfile.ab[2] top.lattice_tb.fp.cpu1.u_datapath.u_regfile.ab[1] top.lattice_tb.fp.cpu1.u_datapath.u_regfile.ab[0]
+@23
 #{top.lattice_tb.fp.cpu1.u_datapath.u_regfile.db[31:0]} top.lattice_tb.fp.cpu1.u_datapath.u_regfile.db[31] top.lattice_tb.fp.cpu1.u_datapath.u_regfile.db[30] top.lattice_tb.fp.cpu1.u_datapath.u_regfile.db[29] top.lattice_tb.fp.cpu1.u_datapath.u_regfile.db[28] top.lattice_tb.fp.cpu1.u_datapath.u_regfile.db[27] top.lattice_tb.fp.cpu1.u_datapath.u_regfile.db[26] top.lattice_tb.fp.cpu1.u_datapath.u_regfile.db[25] top.lattice_tb.fp.cpu1.u_datapath.u_regfile.db[24] top.lattice_tb.fp.cpu1.u_datapath.u_regfile.db[23] top.lattice_tb.fp.cpu1.u_datapath.u_regfile.db[22] top.lattice_tb.fp.cpu1.u_datapath.u_regfile.db[21] top.lattice_tb.fp.cpu1.u_datapath.u_regfile.db[20] top.lattice_tb.fp.cpu1.u_datapath.u_regfile.db[19] top.lattice_tb.fp.cpu1.u_datapath.u_regfile.db[18] top.lattice_tb.fp.cpu1.u_datapath.u_regfile.db[17] top.lattice_tb.fp.cpu1.u_datapath.u_regfile.db[16] top.lattice_tb.fp.cpu1.u_datapath.u_regfile.db[15] top.lattice_tb.fp.cpu1.u_datapath.u_regfile.db[14] top.lattice_tb.fp.cpu1.u_datapath.u_regfile.db[13] top.lattice_tb.fp.cpu1.u_datapath.u_regfile.db[12] top.lattice_tb.fp.cpu1.u_datapath.u_regfile.db[11] top.lattice_tb.fp.cpu1.u_datapath.u_regfile.db[10] top.lattice_tb.fp.cpu1.u_datapath.u_regfile.db[9] top.lattice_tb.fp.cpu1.u_datapath.u_regfile.db[8] top.lattice_tb.fp.cpu1.u_datapath.u_regfile.db[7] top.lattice_tb.fp.cpu1.u_datapath.u_regfile.db[6] top.lattice_tb.fp.cpu1.u_datapath.u_regfile.db[5] top.lattice_tb.fp.cpu1.u_datapath.u_regfile.db[4] top.lattice_tb.fp.cpu1.u_datapath.u_regfile.db[3] top.lattice_tb.fp.cpu1.u_datapath.u_regfile.db[2] top.lattice_tb.fp.cpu1.u_datapath.u_regfile.db[1] top.lattice_tb.fp.cpu1.u_datapath.u_regfile.db[0]
+@22
 #{top.lattice_tb.fp.cpu1.u_datapath.u_regfile.dout_b[31:0]} top.lattice_tb.fp.cpu1.u_datapath.u_regfile.dout_b[31] top.lattice_tb.fp.cpu1.u_datapath.u_regfile.dout_b[30] top.lattice_tb.fp.cpu1.u_datapath.u_regfile.dout_b[29] top.lattice_tb.fp.cpu1.u_datapath.u_regfile.dout_b[28] top.lattice_tb.fp.cpu1.u_datapath.u_regfile.dout_b[27] top.lattice_tb.fp.cpu1.u_datapath.u_regfile.dout_b[26] top.lattice_tb.fp.cpu1.u_datapath.u_regfile.dout_b[25] top.lattice_tb.fp.cpu1.u_datapath.u_regfile.dout_b[24] top.lattice_tb.fp.cpu1.u_datapath.u_regfile.dout_b[23] top.lattice_tb.fp.cpu1.u_datapath.u_regfile.dout_b[22] top.lattice_tb.fp.cpu1.u_datapath.u_regfile.dout_b[21] top.lattice_tb.fp.cpu1.u_datapath.u_regfile.dout_b[20] top.lattice_tb.fp.cpu1.u_datapath.u_regfile.dout_b[19] top.lattice_tb.fp.cpu1.u_datapath.u_regfile.dout_b[18] top.lattice_tb.fp.cpu1.u_datapath.u_regfile.dout_b[17] top.lattice_tb.fp.cpu1.u_datapath.u_regfile.dout_b[16] top.lattice_tb.fp.cpu1.u_datapath.u_regfile.dout_b[15] top.lattice_tb.fp.cpu1.u_datapath.u_regfile.dout_b[14] top.lattice_tb.fp.cpu1.u_datapath.u_regfile.dout_b[13] top.lattice_tb.fp.cpu1.u_datapath.u_regfile.dout_b[12] top.lattice_tb.fp.cpu1.u_datapath.u_regfile.dout_b[11] top.lattice_tb.fp.cpu1.u_datapath.u_regfile.dout_b[10] top.lattice_tb.fp.cpu1.u_datapath.u_regfile.dout_b[9] top.lattice_tb.fp.cpu1.u_datapath.u_regfile.dout_b[8] top.lattice_tb.fp.cpu1.u_datapath.u_regfile.dout_b[7] top.lattice_tb.fp.cpu1.u_datapath.u_regfile.dout_b[6] top.lattice_tb.fp.cpu1.u_datapath.u_regfile.dout_b[5] top.lattice_tb.fp.cpu1.u_datapath.u_regfile.dout_b[4] top.lattice_tb.fp.cpu1.u_datapath.u_regfile.dout_b[3] top.lattice_tb.fp.cpu1.u_datapath.u_regfile.dout_b[2] top.lattice_tb.fp.cpu1.u_datapath.u_regfile.dout_b[1] top.lattice_tb.fp.cpu1.u_datapath.u_regfile.dout_b[0]
 @200
 -

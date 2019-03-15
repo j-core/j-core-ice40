@@ -127,10 +127,6 @@ begin
   ex_pipes(0).addr <= w_addr_ex;
   ex_pipes(0).data <= din_ex;
 
--- Async read (trasparent) register file.  Later clocked address
---  da <= bank_a(to_reg_index(aa));
---  db <= bank_b(to_reg_index(ab));
-
   dout_a <= read_with_forwarding(     aa,     da, wb_pipe, ex_pipes);
   dout_b <= read_with_forwarding(     ab,     db, wb_pipe, ex_pipes);
   dout_0 <= read_with_forwarding(ZERO_ADDR, reg0, wb_pipe, ex_pipes);
@@ -161,9 +157,6 @@ begin
     elsif (rising_edge(clk) and ce = '1') then
        aa <= addr_ra;
        ab <= addr_rb;
--- Sync read (clocked) register file.  Early address
-       da <= bank_a(to_reg_index(addr_ra));
-       db <= bank_b(to_reg_index(addr_rb));
 
       -- the decoder should never schedule a write to a register for both Z and
       -- W bus at the same time
@@ -176,7 +169,9 @@ begin
         addr := to_reg_index(ex_pipes(2).addr);
         data := ex_pipes(2).data;
       end if;
+
       wr_data_o <= (others => '0');
+      we <= '0';
       if ((wb_pipe.en or ex_pipes(2).en) = '1') then
         wr_data_o <= data;
         bank_a(addr) <= data;
@@ -186,15 +181,18 @@ begin
         if (addr = 0) then
           reg0 <= data;
         end if;
--- Sync read bypass
-        if (addr = to_reg_index(addr_ra)) then
-          da <= data;
-        end if;
-        if (addr = to_reg_index(addr_rb)) then
-          db <= data;
-        end if;
+      end if;
+
+-- Sync read (clocked) register file.  Early address, avoid and bypass write conflict
+      if (addr = to_reg_index(addr_ra) and ((wb_pipe.en or ex_pipes(2).en) = '1')) then
+        da <= data;
       else
-        we <= '0';
+        da <= bank_a(to_reg_index(addr_ra));
+      end if;
+      if (addr = to_reg_index(addr_rb) and ((wb_pipe.en or ex_pipes(2).en) = '1')) then
+        db <= data;
+      else
+        db <= bank_b(to_reg_index(addr_rb));
       end if;
 
       ex_pipes(2) <= ex_pipes(1);
