@@ -116,7 +116,8 @@ architecture two_bank of register_file is
 
   signal ex_pipes : ex_pipeline_t;
   signal wb_pipe : reg_pipe_t;
-
+  signal aw : integer := 0;
+  signal we : std_logic;
 begin
   wb_pipe.en <= we_wb;
   wb_pipe.addr <= w_addr_wb;
@@ -155,6 +156,8 @@ begin
       ab <= (others => '0');
       da <= (others => '0');
       db <= (others => '0');
+      aw <= 0;
+      we <= '0';
     elsif (rising_edge(clk) and ce = '1') then
        aa <= addr_ra;
        ab <= addr_rb;
@@ -178,6 +181,8 @@ begin
         wr_data_o <= data;
         bank_a(addr) <= data;
         bank_b(addr) <= data;
+        aw <= addr;
+        we <= '1';
         if (addr = 0) then
           reg0 <= data;
         end if;
@@ -188,8 +193,10 @@ begin
         if (addr = to_reg_index(addr_rb)) then
           db <= data;
         end if;
-
+      else
+        we <= '0';
       end if;
+
       ex_pipes(2) <= ex_pipes(1);
       ex_pipes(1) <= ex_pipes(0);
     end if;

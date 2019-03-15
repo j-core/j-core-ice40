@@ -12,5 +12,5 @@ ghdl -a cpu_lattice.vhd lattice_tb.vhd
 
 ghdl -e lattice_tb
 
-./lattice_tb --stop-time=2700ns --wave=out.ghw --ieee-asserts=disable-at-0 > /dev/null
+./lattice_tb --stop-time=3000ns --wave=out.ghw --ieee-asserts=disable-at-0  --activity=all > /dev/null
 ./lattice_tb --stop-time=2ms --ieee-asserts=disable-at-0
