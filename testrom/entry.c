@@ -230,13 +230,11 @@ __asm__(
 "  mov.l testdiv_k, r0\n"
 "  jsr @r0\n"
 "  nop\n"
-#endif
 "  mov.l testmacw_k, r0\n"
 "  jsr @r0\n"
 "  nop\n"
 "  mov.l testmacl_k, r0\n"
 "  jsr @r0\n"
-#if 0
 #endif /* NO_TESTS */
 "  nop\n"
 "  mov   #0, r0\n"
@@ -282,10 +280,8 @@ __asm__(
 "testdmuls_k:  .long _testdmuls\n"
 "testmulconf_k: .long _testmulconf\n"
 "testdiv_k:    .long _testdiv\n"
-#endif
 "testmacw_k:   .long _testmacw\n"
 "testmacl_k:   .long _testmacl\n"
-#ifndef NO_TESTS
 #endif /* NO_TESTS */
 "pio_addr:     .long 0xABCD0000\n"
 "start_leds:   .long 0x000000ff\n"

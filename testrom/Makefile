@@ -1,4 +1,4 @@
-OBJS := entry.o gdb.o sh2.o main.o version.o
+OBJS := entry.o gdb.o sh2.o version.o
 OBJS += uartlite.o
 #OBJS += uart16550.o
 
@@ -37,8 +37,8 @@ tests/libtests.a: $(TESTS_OBJS)
 	@echo Built test library
 
 
-main.elf: $(OBJS) tests/libtests.a
-	$(LD) $(LDFLAGS) $(OBJS) -Ltests -ltests $(LIBGCC) -o $@
+main.elf: main_up5k_42s.o $(OBJS) tests/libtests.a
+	$(LD) $(LDFLAGS) main_up5k_42s.o $(OBJS) -Ltests -ltests $(LIBGCC) -o $@
 
 main.o: main.c
 	$(CC) $(CFLAGS) -fno-inline -c $<
