@@ -11,15 +11,35 @@ use work.disp_drv_pkg.all;
 library sb_ice40_components_syn;
 use sb_ice40_components_syn.components.all;
 
-entity cpu_lattice is port (
-   led : inout std_logic_vector(7 downto 0);
+entity cpu_up5k is port (
+   x   : inout std_logic_vector(6 downto 1);
+ x1  : inout std_logic_vector(7 downto 0);
+   y   : inout std_logic_vector(7 downto 1);
+   pon : inout std_logic;
+   mfcs: inout std_logic;
+   mrcs: inout std_logic;
+   msck: inout std_logic;
+   msi : inout std_logic;
+   mso : inout std_logic;
+   mio2: inout std_logic;
+   mio3: inout std_logic;
    lcs : inout std_logic;
    la0 : inout std_logic;
    lscl : inout std_logic;
    lsi : inout std_logic);
 end;
 
-architecture behaviour of cpu_lattice is
+architecture behaviour of cpu_up5k is
+
+ function to_open_drain(x : std_logic_vector) return std_logic_vector is
+   variable r : std_logic_vector(x'range) := (others => 'Z');
+ begin
+   for i in x'range loop
+     if x(i) = '0' then r(i) := '0'; end if;
+   end loop;
+   return r;
+ end function to_open_drain;
+
   type instrd_bus_i_t is array(instr_bus_device_t'left to instr_bus_device_t'right) of cpu_data_i_t;
   type instrd_bus_o_t is array(instr_bus_device_t'left to instr_bus_device_t'right) of cpu_data_o_t;
 
@@ -60,13 +80,21 @@ architecture behaviour of cpu_lattice is
   signal lcd_d_o : disp_drv_o_t;
   signal lcd_o   : disp_o_t;
 
-  signal le : std_logic_vector(7 downto 0);
   signal vh : std_logic;
 begin
+
+  pon  <= 'Z'; -- Caution: never make this an output.
+
+  mfcs <= 'Z';
+  mrcs <= 'Z';
+  msck <= 'Z';
+  msi  <= 'Z';
+  mso  <= 'Z';
+  mio2 <= 'Z';
+  mio3 <= 'Z';
+
   rst <= '1', '0' after 10 ns;
-
   vh <= '1';
-
   ck: SB_HFOSC generic map (clkhf_div => "0b10")
                port map (clkhfen => vh, clkhf => clk, clkhfpu => vh);
 
@@ -98,7 +126,10 @@ begin
 
   data_slaves_i(DEV_DDR) <= loopback_bus(data_slaves_o(DEV_DDR));
 
-  pio_data_i.d <= (others => '0');
+-- Keyboard readback
+  pio_data_i.d(31 downto 8) <= (others => '0');
+  pio_data_i.d( 7)          <= pon;
+  pio_data_i.d( 6 downto 0) <= y;
   pio_data_i.ack <= pio_data_o.en;
 
   instruction_buses(master_i => instr_master_i, master_o => instr_master_o,
@@ -148,19 +179,28 @@ begin
 
   -- intercept and print PIO and UART writes
 
-  led <= le;
-
-  l0: process(clk)
+  l0: process(clk, rst)
     variable uart_line : line;
     variable l : line;
     variable c : character;
   begin
-    if clk'event and clk = '1' then
-      if pio_data_o.wr = '1' and pio_data_o.a = x"ABCD0000" then
---        write(l, string'("LED: Write "));
---        write(l, " at " & time'image(now));
---        writeline(output, l);
-          le <= pio_data_o.d(7 downto 0);
+    if rst = '1' then
+      y   <= (others => 'Z');
+      x   <= (others => 'Z');
+    elsif clk'event and clk = '1' then
+      if pio_data_o.wr = '1' and pio_data_o.a(7 downto 0) = x"00" and pio_data_o.en = '1' then
+        if pio_data_o.d(7) = '1' then -- do a precharge
+          y <= (others => '1');
+          if pio_data_o.d(6) = '1' then -- with precharge of x
+            x <= (others => '1');
+          else                          -- with x high Z
+            x <= (others => 'Z');
+          end if;
+        else   -- drive x and readback
+          y <= (others => 'Z'); -- high Z input
+          x <= to_open_drain(pio_data_o.d(5 downto 0));
+        end if;
+x1 <= pio_data_o.d(7 downto 0);
       end if;
       if data_slaves_o(DEV_UART0).wr = '1' and data_slaves_o(DEV_UART0).a = x"ABCD0104" then
 --        c := character'val(to_integer(unsigned(data_slaves_o(DEV_UART0).d(7 downto 0))));

@@ -1,4 +1,7 @@
-#define LEDPORT (*(volatile unsigned long  *)0xabcd0000)
+#define KEYPORT (*(volatile unsigned long  *)0xabcd0000)
+#define KEY_PRECHARGE 0xC0
+#define KEY_ON        0x80
+
 #define LCDDATA (*(volatile unsigned long  *)0xabcd0044)
 #define LCDINST (*(volatile unsigned long  *)0xabcd0040)
 
@@ -78,22 +81,59 @@ ddr_init (void)
 #endif /* NO_DDR */
 
 void
-led(int v)
+key_wait()
 {
-  LEDPORT = v;
+  volatile int i;
+
+  KEYPORT = KEY_PRECHARGE;
+  for (i=0; i<100; i++) {}
+
+  KEYPORT = 0;
+  while((KEYPORT & 0x7f) == 0x7f) {}
+  KEYPORT = KEY_PRECHARGE;
+}
+
+int
+key()
+{
+  volatile int i;
+  int b;
+
+  KEYPORT = KEY_PRECHARGE;
+  for (i=0; i<10; i++) {}
+
+  for (b=0; b<6; b++) {
+    KEYPORT = 0x3f ^ (1<<b);
+    for (i=0; i<10; i++) {}
+    if ((KEYPORT & 0x7f) != 0x7f) return (b<<4) | (KEYPORT & 0x7f);
+  }
+  return 0;
+}
+
+char hv[9];
+char *
+hex(unsigned int v)
+{
+  int n;
+
+  for (n=8; n; n--)
+    hv[8-n] = ((v>>(4*(n-1))) & 0xf) > 0x9 ? 'A' + ((v>>(4*(n-1))) & 0xf) - 0xa : '0' + ((v>>(4*(n-1))) & 0xf); 
+  hv[8] = 0;
+
+  return hv;
 }
 
 void
 lcd_data(unsigned int v)
 {
-  while((LCDDATA) & 1) {led(0x81); led(0x82);}
+  while((LCDDATA) & 1) {;}
   LCDDATA = v;
 }
 
 void
 lcd_inst(unsigned int v)
 {
-  while((LCDDATA) & 1) {led(0x83); led(0x84);}
+  while((LCDDATA) & 1) {;}
   LCDINST = v;
 }
 
@@ -132,31 +172,34 @@ void
 main_sh (void)
 {
   volatile int i;
-  led(0x40);
 
   uart_set_baudrate ();
-  led(0x042);
 
 #ifndef NO_TESTS
   putstr ("CPU tests passed\n");
-  led(0x043);
 #endif
 
 #ifndef NO_DDR
   putstr ("DDR Init\n");
-  led(0x042);
   ddr_init ();
 #endif /* NO_DDR */
 
   putstr ("GDB Stub for HS-2J0 SH2 ROM\n");
   putstr (version_string);
-  led(0x50);
 
   for (i=0; lcd_init[i] != 0xff; i++) lcd_inst(lcd_init[i]);
 
   lcd_loc(0, 1);
+  lcd_puts("Hit a Key!");
+#if 0
+  key_wait();
+  key();
+
+  lcd_loc(0, 1);
   lcd_puts("Hello 123!");
 
+  lcd_loc(0, 0); lcd_puts(hex(0x123ab678));
+#endif
   for (i=0; i<8; i++) {
     lcd_data(
               (1<<(i+0 )) |
@@ -164,17 +207,11 @@ main_sh (void)
               (1<<(i+16)) |
               (1<<(i+24)));
   }
-  led(0x51);
-
-  for (i=0; i<800; i++) {}
-  led(0x55);
-  for (i=0; i<800; i++) {}
-  led(0xaa);
-
   for (;;) {
-    for (i=0; i<1200000; i++) {}
-    led(0x55);
-    for (i=0; i<1200000; i++) {}
-    led(0xaa);
-  } 
+#if 0
+    key_wait();
+    lcd_loc(0,1); lcd_puts("Key...");
+    lcd_loc(0,2); lcd_puts(hex(key()));
+#endif
+  }
 }
