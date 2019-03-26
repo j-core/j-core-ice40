@@ -22,7 +22,6 @@ entity cpu_up5k is port (
    mso : inout std_logic;
    mio2: inout std_logic;
    mio3: inout std_logic;
-   x1  : inout std_logic_vector(7 downto 0);
    lcs : inout std_logic;
    la0 : inout std_logic;
    lscl : inout std_logic;
@@ -220,8 +219,6 @@ begin
           y <= (others => 'Z'); -- high Z input
           x <= to_open_drain(pio_data_o.d(5 downto 0));
         end if;
-x1 <= pio_data_o.d(7 downto 0);
--- x1 <= x"55"; -- pio_data_o.d(7 downto 0);
       end if;
       if data_slaves_o(DEV_UART0).wr = '1' and data_slaves_o(DEV_UART0).a = x"ABCD0104" then
         c := character'val(to_integer(unsigned(data_slaves_o(DEV_UART0).d(7 downto 0))));

@@ -21,7 +21,6 @@ architecture beh of up5k_tb is
   end to_hex_string;
 
   signal x     : std_logic_vector(6 downto 1);
-signal x1     : std_logic_vector(7 downto 0);
   signal y     : std_logic_vector(7 downto 1);
   signal pon   : std_logic;
   signal mfsc  : std_logic;
@@ -45,7 +44,7 @@ signal x1     : std_logic_vector(7 downto 0);
       port map( x => x, y => y, pon => pon,
                 mfcs => mfcs, mrcs => mrcs, msck => msck, msi => msi, mso => mso,
                 mio2 => mio2, mio3 => mio3,
-                lcs => lcs, la0 => la0, lscl => lscl, lsi => lsi , x1 => x1);
+                lcs => lcs, la0 => la0, lscl => lscl, lsi => lsi);
 
    pon <= '1';
    y <= (others => 'H');
@@ -67,7 +66,7 @@ signal x1     : std_logic_vector(7 downto 0);
       if ox /= x then
          ox <= x;
          write(l, string'("X: Write"));
-         write(l, to_hex_string(x1));
+         write(l, to_hex_string(x));
          writeline(output, l);
       end if;
       if oy /= y then
