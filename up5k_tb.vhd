@@ -53,7 +53,7 @@ signal x1     : std_logic_vector(7 downto 0);
    k0: process
    begin
      y(3) <= 'H';
-     wait for 400 us;
+     wait for 650 us;
      while true loop
        y(3) <= x(2);
        wait until x'event;

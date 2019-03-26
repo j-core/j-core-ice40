@@ -13,7 +13,6 @@ use sb_ice40_components_syn.components.all;
 
 entity cpu_up5k is port (
    x   : inout std_logic_vector(6 downto 1);
- x1  : inout std_logic_vector(7 downto 0);
    y   : inout std_logic_vector(7 downto 1);
    pon : inout std_logic;
    mfcs: inout std_logic;
@@ -23,6 +22,7 @@ entity cpu_up5k is port (
    mso : inout std_logic;
    mio2: inout std_logic;
    mio3: inout std_logic;
+   x1  : inout std_logic_vector(7 downto 0);
    lcs : inout std_logic;
    la0 : inout std_logic;
    lscl : inout std_logic;
@@ -39,6 +39,19 @@ architecture behaviour of cpu_up5k is
    end loop;
    return r;
  end function to_open_drain;
+
+  function to_hex_string(s: in std_logic_vector) return string is
+    constant hex : string (1 to 16) := "0123456789ABCDEF";
+    variable ss  : std_logic_vector(31 downto 0) := (others => '0');
+    variable ret : string (1 to ss'left/4+1);
+  begin
+    ss(s'range) := s;
+    for i in 0 to ss'left/4 loop
+      ret(i+1) := hex(to_integer(unsigned(ss(ss'left - i*4 downto ss'left - i*4 -3)))+1);
+    end loop;
+   return ret;
+  end to_hex_string;
+
 
   type instrd_bus_i_t is array(instr_bus_device_t'left to instr_bus_device_t'right) of cpu_data_i_t;
   type instrd_bus_o_t is array(instr_bus_device_t'left to instr_bus_device_t'right) of cpu_data_o_t;
@@ -124,7 +137,7 @@ begin
 --  data_slaves_i(DEV_SPI) <= loopback_bus(data_slaves_o(DEV_SPI));
   data_slaves_i(DEV_UART0) <= loopback_bus(data_slaves_o(DEV_UART0));
 
-  data_slaves_i(DEV_DDR) <= loopback_bus(data_slaves_o(DEV_DDR));
+--  data_slaves_i(DEV_DDR) <= loopback_bus(data_slaves_o(DEV_DDR));
 
 -- Keyboard readback
   pio_data_i.d(31 downto 8) <= (others => '0');
@@ -146,8 +159,8 @@ begin
     INSERT when "10",
     CONTINUE when others;
 
-  splice_instr_data_bus(instr_slaves_o(DEV_DDR), instr_slaves_i(DEV_DDR),
-                        instrd_slaves_o(DEV_DDR), instrd_slaves_i(DEV_DDR));
+--  splice_instr_data_bus(instr_slaves_o(DEV_DDR), instr_slaves_i(DEV_DDR),
+--                        instrd_slaves_o(DEV_DDR), instrd_slaves_i(DEV_DDR));
 
   cpu1: cpu
             port map(clk => clk, rst => rst,
@@ -162,6 +175,13 @@ begin
              ibus_o => instr_slaves_i(DEV_SRAM),
              db_i => data_slaves_o(DEV_SRAM),
              db_o => data_slaves_i(DEV_SRAM));
+
+  bram : entity work.cpu_bulk_sram
+    port map(clk => clk,
+             ibus_i => instr_slaves_o(DEV_DDR),
+             ibus_o => instr_slaves_i(DEV_DDR),
+             db_i => data_slaves_o(DEV_DDR),
+             db_o => data_slaves_i(DEV_DDR));
 
   lcd : disp_drv port map (clk => clk, rst => rst, a => lcd_d_i, y => lcd_d_o, yl => lcd_o);
   lcd_d_i.d   <= data_slaves_o(DEV_SPI).d;
@@ -201,19 +221,41 @@ begin
           x <= to_open_drain(pio_data_o.d(5 downto 0));
         end if;
 x1 <= pio_data_o.d(7 downto 0);
+-- x1 <= x"55"; -- pio_data_o.d(7 downto 0);
       end if;
       if data_slaves_o(DEV_UART0).wr = '1' and data_slaves_o(DEV_UART0).a = x"ABCD0104" then
---        c := character'val(to_integer(unsigned(data_slaves_o(DEV_UART0).d(7 downto 0))));
---        if character'pos(c) = 10 then -- newline
---          writeline(output, uart_line);
---        else
---          write(uart_line, c);
---          if c = ';' then
-            -- hack to better display the gdb remote protocol messages
---          writeline(output, uart_line);
---          end if;
---        end if;
+        c := character'val(to_integer(unsigned(data_slaves_o(DEV_UART0).d(7 downto 0))));
+        if character'pos(c) = 10 then -- newline
+          writeline(output, uart_line);
+        else
+          write(uart_line, c);
+          if c = ';' then
+          -- hack to better display the gdb remote protocol messages
+          writeline(output, uart_line);
+          end if;
+        end if;
       end if;
+
+      if data_slaves_o(DEV_DDR).en = '1' then
+        if data_slaves_o(DEV_DDR).wr = '1' then
+          write(l, string'("SPRAM: Write:"));
+          write(l, to_hex_string(data_slaves_o(DEV_DDR).a));
+          write(l, string'(" <= "));
+          write(l, to_hex_string(data_slaves_o(DEV_DDR).d));
+          write(l, string'(" "));
+          if data_slaves_o(DEV_DDR).we(3) = '1' then write(l, string'("1")); else write(l, string'("0")); end if;
+          if data_slaves_o(DEV_DDR).we(2) = '1' then write(l, string'("1")); else write(l, string'("0")); end if;
+          if data_slaves_o(DEV_DDR).we(1) = '1' then write(l, string'("1")); else write(l, string'("0")); end if;
+          if data_slaves_o(DEV_DDR).we(0) = '1' then write(l, string'("1")); else write(l, string'("0")); end if;
+        else
+          write(l, string'("SPRAM: Read :"));
+          write(l, to_hex_string(data_slaves_o(DEV_DDR).a));
+          write(l, string'(" => "));
+          write(l, to_hex_string(data_slaves_i(DEV_DDR).d));
+        end if;
+        writeline(output, l);
+      end if;
+
     end if;
   end process;
 

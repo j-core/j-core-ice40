@@ -1,31 +1,36 @@
-set_io x[1] 42
-set_io x[2] 38
-set_io x[3] 37
-set_io x[4] 36
-set_io x[5] 35
-set_io x[6] 34
+#set_io x[1] 42
+#set_io x[2] 38
+#set_io x[3] 37
+#set_io x[4] 36
+#set_io x[5] 35
+#set_io x[6] 34
+#
+#set_io y[1] 32
+#set_io y[2] 31
+#set_io y[3] 28
+#set_io y[4] 27
+#set_io y[5] 26
+#set_io y[6] 25
+#set_io y[7] 23
+#
+#set_io pon  43
+#
+#set_io lcs  21
+#set_io lscl 19
+#set_io lsi  18
+#set_io la0  20
+#
+set_io lcs  45
+set_io lscl 47
+set_io lsi  46
+set_io la0  2
 
-set_io y[1] 32
-set_io y[2] 31
-set_io y[3] 28
-set_io y[4] 27
-set_io y[5] 26
-set_io y[6] 25
-set_io y[7] 23
+set_io x1[0] 26
+set_io x1[1] 27
+set_io x1[2] 32
+set_io x1[3] 35
+set_io x1[4] 31
+set_io x1[5] 37
+set_io x1[6] 34
+set_io x1[7] 43
 
-set_io pon  43
-
-set_io lcs  21
-set_io lscl 19
-set_io lsi  18
-set_io la0  20
-
-set_io mfcs 16
-set_io msck 15
-set_io msi  17
-set_io mso  14
-
-set_io mrcs 6
-
-set_io mio2 11
-set_io mio3 12
