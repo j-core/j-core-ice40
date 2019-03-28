@@ -124,6 +124,7 @@ main_sh (void)
 {
   volatile int i;
   unsigned int stat = 0x50;
+#if 0
 
   KEYPORT = KEY_PRECHARGE;
 
@@ -147,7 +148,6 @@ main_sh (void)
   for (i=0; lcd_init[i] != 0xff; i++) lcd_inst(lcd_init[i]);
 
   putstr ("LCD init\n");
-#if 0
   lcd_loc(0, 1);
   lcd_puts("Hit a Key!");
 
@@ -162,7 +162,6 @@ main_sh (void)
 #if 0
 
   lcd_loc(0, 0); lcd_puts(hex(0x123ab678));
-#endif
   for (i=0; i<8; i++) {
     lcd_data(
               (1<<(i+0 )) |
@@ -170,6 +169,7 @@ main_sh (void)
               (1<<(i+16)) |
               (1<<(i+24)));
   }
+#endif
   for (i=0; i<800; i++) {}
   led(stat);
   for (i=0; i<800; i++) {}
