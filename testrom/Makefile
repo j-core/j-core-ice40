@@ -37,8 +37,8 @@ tests/libtests.a: $(TESTS_OBJS)
 	@echo Built test library
 
 
-main.elf: main_up5k_42s.o $(OBJS) tests/libtests.a
-	$(LD) $(LDFLAGS) main_up5k_42s.o $(OBJS) -Ltests -ltests $(LIBGCC) -o $@
+main.elf: $(OBJS) tests/libtests.a main_up5k_42s.o 
+	$(LD) $(LDFLAGS) $(OBJS) main_up5k_42s.o -Ltests -ltests $(LIBGCC) -o $@
 
 main.o: main.c
 	$(CC) $(CFLAGS) -fno-inline -c $<
