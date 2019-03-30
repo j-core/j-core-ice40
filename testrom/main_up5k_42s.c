@@ -123,7 +123,7 @@ void
 main_sh (void)
 {
   volatile int i;
-  unsigned int stat = 0x50;
+  unsigned int stat = 600000;
 #if 0
 
   KEYPORT = KEY_PRECHARGE;
@@ -138,30 +138,27 @@ main_sh (void)
 #endif
 
   led(0xe1);
+#endif
+  if (march((void *)0x10000000, 3, 0) != -1) stat = 120000;
+  else if (march((void *)0x10000000, 3, 1) != -1) stat = 240000;
+    else if (march((void *)0x10000000, 3, 2) != -1) stat = 480000;
 
-  if (march((void *)0x10000000, 3, 0) != -1) stat = 0xe2;
-  else if (march((void *)0x10000000, 3, 1) != -1) stat = 0xe3;
-    else if (march((void *)0x10000000, 3, 2) != -1) stat = 0xe4;
-
-//  for (i=0; i<1200000; i++) {}
+  for (i=0; i<1200000; i++) {}
 
   for (i=0; lcd_init[i] != 0xff; i++) lcd_inst(lcd_init[i]);
 
-  putstr ("LCD init\n");
   lcd_loc(0, 1);
-  lcd_puts("Hit a Key!");
+  putstr ("LCD init\n");
 
-  putstr ("LCD Welcome\n");
-
+#if 0
   key_wait();
   key();
 
   lcd_loc(0, 1);
   lcd_puts("Hello 123!");
 #endif
-#if 0
 
-  lcd_loc(0, 0); lcd_puts(hex(0x123ab678));
+//  lcd_loc(0, 0); lcd_puts(hex(0x123ab678));
   for (i=0; i<8; i++) {
     lcd_data(
               (1<<(i+0 )) |
@@ -169,16 +166,16 @@ main_sh (void)
               (1<<(i+16)) |
               (1<<(i+24)));
   }
-#endif
+
   for (i=0; i<800; i++) {}
   led(stat);
   for (i=0; i<800; i++) {}
   led(0xaa);
 
   for (;;) {
-    for (i=0; i<1200000; i++) {}
-    led(stat);
-    for (i=0; i<1200000; i++) {}
+    for (i=0; i<stat; i++) {}
+    led(0x55);
+    for (i=0; i<stat; i++) {}
     led(0xaa);
   }
 #if 0
