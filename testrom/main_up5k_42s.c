@@ -1,6 +1,10 @@
 #define KEYPORT (*(volatile unsigned long  *)0xabcd0000)
-#define KEY_PRECHARGE 0xC0
-#define KEY_ON        0x80
+#define KEY_PRECHARGE_READ 0x80
+#define KEY_PRECHARGE_ALL  0xC0
+#define KEY_IDLE           0x00
+#define KEY_NONE           0x7F
+#define KEY_ALL            0xFF
+#define KEY_ON             0x80
 
 #define LCDDATA (*(volatile unsigned long  *)0xabcd0044)
 #define LCDINST (*(volatile unsigned long  *)0xabcd0040)
@@ -8,14 +12,6 @@
 #include "font5x7.h"
 
 extern char version_string[];
-
-char ram0[256]; /* working ram for CPU tests */
-
-void
-led(unsigned long v)
-{
-   KEYPORT = v;
-}
 
 void
 putstr (char *str)
@@ -29,34 +25,55 @@ putstr (char *str)
 }
 
 void
-key_wait()
+key_precharge()
 {
   volatile int i;
 
-  KEYPORT = KEY_PRECHARGE;
-  for (i=0; i<10; i++) {}
-putstr("key wait...");
-  KEYPORT = 0;
-  while((KEYPORT & 0x7f) == 0x7f) {}
-putstr(" detect\n");
-  KEYPORT = KEY_PRECHARGE;
+  KEYPORT = KEY_NONE;
+  for (i=0; i<3; i++) {}
+  KEYPORT = KEY_PRECHARGE_ALL;
+  for (i=0; i<3; i++) {}
+}
+ 
+int
+key_wait(int h)
+{
+  volatile int i;
+  int res;
+
+  key_precharge();
+  while (1) {
+    KEYPORT = KEY_IDLE;
+    for (i=0; i<12000; i++) {;} /* about 20ms */
+    KEYPORT = KEY_PRECHARGE_READ;
+    for (i=0; i<12; i++) {;}    /* about 20us */
+
+    KEYPORT = KEY_IDLE;
+    for (i=0; i<12; i++) {;}    /* about 20us */
+    res=KEYPORT & KEY_ALL;
+
+    if ((res == KEY_ALL && !h) || (res != KEY_ALL && h)) break;
+  }
+
+  return res ^ KEY_ALL;
 }
 
 int
 key()
 {
   volatile int i;
-  int b;
+  int x, res;
 
-  KEYPORT = KEY_PRECHARGE;
-  for (i=0; i<10; i++) {}
-
-  for (b=0; b<6; b++) {
-    KEYPORT = 0x3f ^ (1<<b);
-    for (i=0; i<10; i++) {}
-    if ((KEYPORT & 0x7f) != 0x7f) return (b<<4) | (KEYPORT & 0x7f);
+  key_precharge();
+  for (x=0; x<7; x++) {
+    KEYPORT = KEY_NONE ^ (1<<x);
+    for (i=0; i<120; i++) {;}
+    res=KEYPORT & KEY_ALL;
+    KEYPORT = KEY_PRECHARGE_ALL;
+    for (i=0; i<12; i++) {;}
+    if ((res & KEY_NONE) != KEY_NONE) return (x<<8) | (res ^ KEY_ALL);
   }
-  return 0;
+  return res ^ KEY_ALL;
 }
 
 char hv[9];
@@ -124,10 +141,9 @@ main_sh (void)
 {
   volatile int i;
   unsigned int stat = 600000;
+
+  key_precharge();
 #if 0
-
-  KEYPORT = KEY_PRECHARGE;
-
   uart_set_baudrate ();
 
 #ifndef NO_TESTS
@@ -137,7 +153,6 @@ main_sh (void)
   putstr (version_string);
 #endif
 
-  led(0xe1);
 #endif
   if (march((void *)0x10000000, 3, 0) != -1) stat = 120000;
   else if (march((void *)0x10000000, 3, 1) != -1) stat = 240000;
@@ -148,17 +163,9 @@ main_sh (void)
   for (i=0; lcd_init[i] != 0xff; i++) lcd_inst(lcd_init[i]);
 
   lcd_loc(0, 1);
-  putstr ("LCD init\n");
+  lcd_puts ("LCD init\n");
 
-#if 0
-  key_wait();
-  key();
-
-  lcd_loc(0, 1);
-  lcd_puts("Hello 123!");
-#endif
-
-//  lcd_loc(0, 0); lcd_puts(hex(0x123ab678));
+  lcd_loc(0, 0); lcd_puts("main() = "); lcd_puts(hex( main_sh ));
   for (i=0; i<8; i++) {
     lcd_data(
               (1<<(i+0 )) |
@@ -167,22 +174,16 @@ main_sh (void)
               (1<<(i+24)));
   }
 
-  for (i=0; i<800; i++) {}
-  led(stat);
-  for (i=0; i<800; i++) {}
-  led(0xaa);
+#if 1
+  for (;;) {
+    lcd_loc(0,2); lcd_puts("Wait...   ");
 
-  for (;;) {
-    for (i=0; i<stat; i++) {}
-    led(0x55);
-    for (i=0; i<stat; i++) {}
-    led(0xaa);
-  }
-#if 0
-  for (;;) {
-    key_wait();
-    lcd_loc(0,1); lcd_puts("Key...");
-    lcd_loc(0,2); lcd_puts(hex(key()));
+    lcd_puts(hex(key_wait(1)));
+    lcd_loc(0,2); lcd_puts("Key !!!   ");
+
+    lcd_loc(0,3); lcd_puts(hex(key()));
+
+    lcd_puts(hex(key_wait(0)));
   }
 #endif
 }
