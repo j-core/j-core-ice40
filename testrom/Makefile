@@ -1,4 +1,5 @@
-OBJS := entry.o march.o gdb.o sh2.o version.o
+#OBJS := entry.o march.o gdb.o sh2.o version.o
+OBJS := entry.o gdb.o sh2.o version.o
 OBJS += uartlite.o
 #OBJS += uart16550.o
 

@@ -11,7 +11,18 @@
 
 #include "font5x7.h"
 
+static char * keys[] = {
+/*        0       1       2       3        4     5     6       7 */
+/* 00 */ "",     "SUM-", "STO",  "",      "UP", "DN", "SHFT", "",
+/* 08 */ "EXIT", "1/x",  "RCL",  "ENTER", "",   "",   "",     "",
+/* 10 */ "",     "SRQT", "R DN", "x y",   "7",  "4",  "1",    "0",
+/* 18 */ "",     "LOG",  "SIN",  "+/-",   "8",  "5",  "2",    ".",
+/* 20 */ "",     "LN",   "COS",  "E",     "9",  "6",  "3",    "R/S",
+/* 28 */ "",     "XEQ",  "TAN",  "BS",    "/",  "*",  "-",    "+" };
+
 extern char version_string[];
+
+static int ffsl(long i) { return i ? __builtin_ctzl(i) + 1 : 0; }
 
 void
 putstr (char *str)
@@ -71,7 +82,7 @@ key()
     res=KEYPORT & KEY_ALL;
     KEYPORT = KEY_PRECHARGE_ALL;
     for (i=0; i<12; i++) {;}
-    if ((res & KEY_NONE) != KEY_NONE) return (x<<8) | (res ^ KEY_ALL);
+    if ((res & KEY_ALL) != KEY_ALL) return (x<<3) | ffsl(res ^ KEY_ALL);
   }
   return res ^ KEY_ALL;
 }
@@ -154,11 +165,12 @@ main_sh (void)
 #endif
 
 #endif
+#if 0
   if (march((void *)0x10000000, 3, 0) != -1) stat = 120000;
   else if (march((void *)0x10000000, 3, 1) != -1) stat = 240000;
     else if (march((void *)0x10000000, 3, 2) != -1) stat = 480000;
-
-  for (i=0; i<1200000; i++) {}
+#endif
+  for (i=0; i<600000; i++) {}
 
   for (i=0; lcd_init[i] != 0xff; i++) lcd_inst(lcd_init[i]);
 
@@ -181,7 +193,9 @@ main_sh (void)
     lcd_puts(hex(key_wait(1)));
     lcd_loc(0,2); lcd_puts("Key !!!   ");
 
-    lcd_loc(0,3); lcd_puts(hex(key()));
+    i = key();
+    lcd_loc(0,3); lcd_puts(hex(i)+6);
+    lcd_puts(" "); lcd_puts(keys[i]); lcd_puts("       ");
 
     lcd_puts(hex(key_wait(0)));
   }
