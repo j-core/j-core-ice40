@@ -1,0 +1,82 @@
+#-- Synopsys, Inc.
+#-- Project file /home/jeff/upd2/upd2_syn.prj
+#project files
+add_file -vhdl -lib work "../work/J1/jcore-j1/bus_monitor.vhd"
+add_file -vhdl -lib work "../work/J1/jcore-j1/components_pkg.vhd"
+add_file -vhdl -lib work "../work/J1/jcore-j1/cpu.vhd"
+add_file -vhdl -lib work "../work/J1/jcore-j1/cpu2j0_pkg.vhd"
+add_file -vhdl -lib work "../work/J1/jcore-j1/cpu_simple_sram.vhd"
+add_file -vhdl -lib work "../work/J1/jcore-j1/cpu_bulk_sram.vhd"
+add_file -vhdl -lib work "../work/J1/jcore-j1/cpu_up5k_42s.vhd"
+add_file -vhdl -lib work "../work/J1/jcore-j1/data_bus_pkg.vhd"
+add_file -vhdl -lib work "../work/J1/jcore-j1/datapath_pkg.vhd"
+add_file -vhdl -lib work "../work/J1/jcore-j1/datapath.vhd"
+add_file -vhdl -lib work "../work/J1/jcore-j1/decode.vhd"
+add_file -vhdl -lib work "../work/J1/jcore-j1/decode_body.vhd"
+add_file -vhdl -lib work "../work/J1/jcore-j1/decode_core.vhd"
+add_file -vhdl -lib work "../work/J1/jcore-j1/decode_pkg.vhd"
+add_file -vhdl -lib work "../work/J1/jcore-j1/decode_table.vhd"
+add_file -vhdl -lib work "../work/J1/jcore-j1/decode_table_reverse.vhd"
+#add_file -vhdl -lib work "../work/J1/jcore-j1/decode_table_rom.vhd"
+add_file -vhdl -lib work "../work/J1/jcore-j1/lattice_ebr.vhd"
+add_file -vhdl -lib work "../work/J1/jcore-j1/lattice_spr_wrap.vhd"
+add_file -vhdl -lib work "../work/J1/jcore-j1/monitor_pkg.vhd"
+add_file -vhdl -lib work "../work/J1/jcore-j1/mult.vhd"
+add_file -vhdl -lib work "../work/J1/jcore-j1/mult_pkg.vhd"
+add_file -vhdl -lib work "../work/J1/jcore-j1/register_file_sync.vhd"
+add_file -vhdl -lib work "../work/J1/jcore-j1/ram_init.vhd"
+add_file -vhdl -lib work "../work/J1/jcore-j1/timeout_cnt.vhd"
+add_file -vhdl -lib work "../work/J1/disp_drv/disp_drv_pkg.vhd"
+add_file -vhdl -lib work "../work/J1/disp_drv/disp_drv.vhd"
+
+#implementation: "upd2_Implmnt"
+impl -add upd2_Implmnt -type fpga
+
+#implementation attributes
+set_option -vlog_std v2001
+set_option -project_relative_includes 1
+
+#device options
+set_option -technology SBTiCE40UP
+set_option -part iCE40UP5K
+set_option -package SG48
+set_option -speed_grade 
+set_option -part_companion ""
+
+#compilation/mapping options
+
+# mapper_options
+set_option -frequency auto
+set_option -write_verilog 0
+set_option -write_vhdl 0
+
+# Silicon Blue iCE40UP
+set_option -maxfan 10000
+set_option -disable_io_insertion 0
+set_option -pipe 1
+set_option -retiming 0
+set_option -update_models_cp 0
+set_option -fixgatedclocks 2
+set_option -fixgeneratedclocks 0
+
+# NFilter
+set_option -popfeed 0
+set_option -constprop 0
+set_option -createhierarchy 0
+
+# sequential_optimization_options
+set_option -symbolic_fsm_compiler 1
+
+# Compiler Options
+set_option -compiler_compatible 0
+set_option -resource_sharing 1
+
+#automatic place and route (vendor) options
+set_option -write_apr_constraint 1
+
+#set result format/file last
+project -result_format "edif"
+project -result_file ./upd2_Implmnt/upd2.edf
+project -log_file "./upd2_Implmnt/upd2.srr"
+impl -active "upd2_Implmnt"
+project -run synthesis -clean
