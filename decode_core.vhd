@@ -6,10 +6,10 @@ use work.cpu2j0_pack.all;
 
 entity decode_core is
   generic (
-    decode_type : cpu_decode_type_t := REVERSE;
-    reset_vector : decode_core_reg_t := DEC_CORE_RESET);
---    decode_type : cpu_decode_type_t := MICROCODE;
---    reset_vector : decode_core_reg_t := DEC_CORE_ROM_RESET);
+--    decode_type : cpu_decode_type_t := REVERSE;
+--    reset_vector : decode_core_reg_t := DEC_CORE_RESET);
+    decode_type : cpu_decode_type_t := MICROCODE;
+    reset_vector : decode_core_reg_t := DEC_CORE_ROM_RESET);
   port (
     clk : in std_logic;
     delay_jump : in std_logic;

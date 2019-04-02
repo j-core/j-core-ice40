@@ -52,8 +52,22 @@ architecture behaviour of cpu_lattice is
 
   signal le : std_logic_vector(7 downto 0);
   signal vh : std_logic;
+
+  signal rst_cnt : integer range 0 to 15 := 0;
 begin
-  rst <= '1', '0' after 10 ns;
+--  rst <= '1', '0' after 10 ns;
+
+  rs0: process(clk, rst, rst_cnt)
+  begin
+  if clk'event and clk = '1' then
+    if rst_cnt /= 7 then
+      rst <= '1';
+      rst_cnt <= rst_cnt + 1;
+    else
+      rst <= '0';
+    end if;
+  end if;
+  end process;
 
   vh <= '1';
 

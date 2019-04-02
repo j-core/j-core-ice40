@@ -93,6 +93,8 @@ architecture behaviour of cpu_up5k is
   signal lcd_o   : disp_o_t;
 
   signal vh : std_logic;
+
+  signal rst_cnt : integer range 0 to 15 := 0;
 begin
 
   pon  <= 'Z'; -- Caution: never make this an output.
@@ -105,7 +107,19 @@ begin
   mio2 <= 'Z';
   mio3 <= 'Z';
 
-  rst <= '1', '0' after 10 ns;
+--  rst <= '1', '0' after 10 ns;
+  rs0: process(clk, rst, rst_cnt)
+  begin
+  if clk'event and clk = '1' then
+    if rst_cnt /= 7 then
+      rst <= '1';
+      rst_cnt <= rst_cnt + 1;
+    else
+      rst <= '0';
+    end if;
+  end if;
+  end process;
+
   vh <= '1';
   ck: SB_HFOSC generic map (clkhf_div => "0b10")
                port map (clkhfen => vh, clkhf => clk, clkhfpu => vh);
