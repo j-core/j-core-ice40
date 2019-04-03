@@ -100,7 +100,7 @@ begin
   data_slaves_i(DEV_SPI) <= loopback_bus(data_slaves_o(DEV_SPI));
   data_slaves_i(DEV_UART0) <= loopback_bus(data_slaves_o(DEV_UART0));
 
-  data_slaves_i(DEV_DDR) <= loopback_bus(data_slaves_o(DEV_DDR));
+  data_slaves_i(DEV_BRAM) <= loopback_bus(data_slaves_o(DEV_BRAM));
 
   pio_data_i.d <= (others => '0');
   pio_data_i.ack <= pio_data_o.en;
@@ -119,8 +119,8 @@ begin
     INSERT when "10",
     CONTINUE when others;
 
-  splice_instr_data_bus(instr_slaves_o(DEV_DDR), instr_slaves_i(DEV_DDR),
-                        instrd_slaves_o(DEV_DDR), instrd_slaves_i(DEV_DDR));
+  splice_instr_data_bus(instr_slaves_o(DEV_BRAM), instr_slaves_i(DEV_BRAM),
+                        instrd_slaves_o(DEV_BRAM), instrd_slaves_i(DEV_BRAM));
 
   cpu1: cpu
             port map(clk => clk, rst => rst,

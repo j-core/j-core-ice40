@@ -7,48 +7,28 @@ package data_bus_pkg is
     ,DEV_PIO
     ,DEV_SPI
     ,DEV_AIC
-      ,DEV_UART0
-      ,DEV_UART1
-      ,DEV_UARTGPS
+    ,DEV_UART0
+    ,DEV_BRAM
     ,DEV_SRAM
-      ,DEV_DDR
-    ,DEV_BL0
-    ,DEV_EMAC
-      ,DEV_I2C
   );
   type data_bus_i_t is array(data_bus_device_t'left to data_bus_device_t'right) of cpu_data_i_t;
   type data_bus_o_t is array(data_bus_device_t'left to data_bus_device_t'right) of cpu_data_o_t;
-  type ext_bus_device_t is (
-    DEV_BL0,
-    DEV_EMAC,
-      DEV_I2C,
-    DEV_DDR
-  );
+
   type ext_irq_device_t is (
-    DEV_EMAC,
-      DEV_I2C,
-    DEV_1PPS,
-    DEV_EXT
+    DEV_PIO,
+    DEV_SPI
   );
-  type ext_to_int_data_bus_t is array(ext_bus_device_t'left to ext_bus_device_t'right) of data_bus_device_t;
+
   type ext_to_int_irq_t is array(ext_irq_device_t'left to ext_irq_device_t'right) of integer range 0 to 7;
-  -- arrays for mapping mcu_lib's data bus and irq ports to the internal versions
-  constant ext_to_int_data : ext_to_int_data_bus_t := (
-    DEV_BL0 => DEV_BL0,
-    DEV_EMAC => DEV_EMAC,
-      DEV_I2C => DEV_I2C,
-    DEV_DDR => DEV_NONE
-  );
+
   constant ext_to_int_irq : ext_to_int_irq_t := (
-    DEV_EMAC => 0,
-      DEV_I2C => 7,
-    DEV_1PPS => 5,
-    DEV_EXT => 3
+    DEV_PIO => 1,
+    DEV_SPI => 2
   );
   -- TODO: Should instruction bus have a DEV_NONE? Depends on if all reads
   -- outside DDR should be mapped to SRAM.
   type instr_bus_device_t is (
-      DEV_DDR,
+    DEV_BRAM,
     DEV_SRAM);
   type instr_bus_i_t is array(instr_bus_device_t'left to instr_bus_device_t'right) of cpu_instruction_i_t;
   type instr_bus_o_t is array(instr_bus_device_t'left to instr_bus_device_t'right) of cpu_instruction_o_t;
@@ -105,7 +85,7 @@ package body data_bus_pkg is
   begin
     case addr(31 downto 28) is
         when x"1" =>
-          return DEV_DDR;
+          return DEV_BRAM;
       when x"a" =>
         case addr(27 downto 16) is
           when x"bcd" =>
@@ -116,8 +96,6 @@ package body data_bus_pkg is
                     return DEV_PIO;
                   when "01" =>
                     return DEV_SPI;
-                    when "10" =>
-                      return DEV_I2C;
                   when others =>
                     return DEV_NONE;
                 end case;
@@ -125,17 +103,9 @@ package body data_bus_pkg is
                 return DEV_UART0;
               when x"02" =>
                 return DEV_AIC;
-              when x"03" =>
-                return DEV_UART1;
-              when x"04" =>
-                return DEV_UARTGPS;
               when others =>
                 return DEV_NONE;
             end case;
-            when x"bce" =>
-              return DEV_EMAC;
-          when x"bd0" =>
-            return DEV_BL0;
           when others =>
             return DEV_NONE;
         end case;
@@ -189,7 +159,7 @@ package body data_bus_pkg is
   return instr_bus_device_t is
   begin
       if is_prefix(addr, x"1") then
-        return DEV_DDR;
+        return DEV_BRAM;
       else
         -- TODO: Should we have a DEV_NONE here and explicitly check for SRAM's
         -- prefix of zeros?

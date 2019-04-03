@@ -150,7 +150,7 @@ begin
 --  data_slaves_i(DEV_SPI) <= loopback_bus(data_slaves_o(DEV_SPI));
   data_slaves_i(DEV_UART0) <= loopback_bus(data_slaves_o(DEV_UART0));
 
---  data_slaves_i(DEV_DDR) <= loopback_bus(data_slaves_o(DEV_DDR));
+--  data_slaves_i(DEV_BRAM) <= loopback_bus(data_slaves_o(DEV_BRAM));
 
 -- Keyboard readback
   pio_data_i.d(31 downto 8) <= (others => '0');
@@ -172,8 +172,8 @@ begin
     INSERT when "10",
     CONTINUE when others;
 
---  splice_instr_data_bus(instr_slaves_o(DEV_DDR), instr_slaves_i(DEV_DDR),
---                        instrd_slaves_o(DEV_DDR), instrd_slaves_i(DEV_DDR));
+--  splice_instr_data_bus(instr_slaves_o(DEV_BRAM), instr_slaves_i(DEV_BRAM),
+--                        instrd_slaves_o(DEV_BRAM), instrd_slaves_i(DEV_BRAM));
 
   cpu1: cpu
             port map(clk => clk, rst => rst,
@@ -191,10 +191,10 @@ begin
 
   bram : entity work.cpu_bulk_sram
     port map(clk => clk,
-             ibus_i => instr_slaves_o(DEV_DDR),
-             ibus_o => instr_slaves_i(DEV_DDR),
-             db_i => data_slaves_o(DEV_DDR),
-             db_o => data_slaves_i(DEV_DDR));
+             ibus_i => instr_slaves_o(DEV_BRAM),
+             ibus_o => instr_slaves_i(DEV_BRAM),
+             db_i => data_slaves_o(DEV_BRAM),
+             db_o => data_slaves_i(DEV_BRAM));
 
   lcd : disp_drv port map (clk => clk, rst => rst, a => lcd_d_i, y => lcd_d_o, yl => lcd_o);
   lcd_d_i.d   <= data_slaves_o(DEV_SPI).d;
@@ -247,22 +247,22 @@ begin
         end if;
       end if;
 
-      if data_slaves_o(DEV_DDR).en = '1' then
-        if data_slaves_o(DEV_DDR).wr = '1' then
+      if data_slaves_o(DEV_BRAM).en = '1' then
+        if data_slaves_o(DEV_BRAM).wr = '1' then
           write(l, string'("SPRAM: Write:"));
-          write(l, to_hex_string(data_slaves_o(DEV_DDR).a));
+          write(l, to_hex_string(data_slaves_o(DEV_BRAM).a));
           write(l, string'(" <= "));
-          write(l, to_hex_string(data_slaves_o(DEV_DDR).d));
+          write(l, to_hex_string(data_slaves_o(DEV_BRAM).d));
           write(l, string'(" "));
-          if data_slaves_o(DEV_DDR).we(3) = '1' then write(l, string'("1")); else write(l, string'("0")); end if;
-          if data_slaves_o(DEV_DDR).we(2) = '1' then write(l, string'("1")); else write(l, string'("0")); end if;
-          if data_slaves_o(DEV_DDR).we(1) = '1' then write(l, string'("1")); else write(l, string'("0")); end if;
-          if data_slaves_o(DEV_DDR).we(0) = '1' then write(l, string'("1")); else write(l, string'("0")); end if;
+          if data_slaves_o(DEV_BRAM).we(3) = '1' then write(l, string'("1")); else write(l, string'("0")); end if;
+          if data_slaves_o(DEV_BRAM).we(2) = '1' then write(l, string'("1")); else write(l, string'("0")); end if;
+          if data_slaves_o(DEV_BRAM).we(1) = '1' then write(l, string'("1")); else write(l, string'("0")); end if;
+          if data_slaves_o(DEV_BRAM).we(0) = '1' then write(l, string'("1")); else write(l, string'("0")); end if;
         else
           write(l, string'("SPRAM: Read :"));
-          write(l, to_hex_string(data_slaves_o(DEV_DDR).a));
+          write(l, to_hex_string(data_slaves_o(DEV_BRAM).a));
           write(l, string'(" => "));
-          write(l, to_hex_string(data_slaves_i(DEV_DDR).d));
+          write(l, to_hex_string(data_slaves_i(DEV_BRAM).d));
         end if;
         writeline(output, l);
       end if;
