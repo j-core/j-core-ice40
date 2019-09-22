@@ -6,6 +6,7 @@ ghdl -a cpu2j0_pkg.vhd components_pkg.vhd mult_pkg.vhd decode_pkg.vhd decode_bod
 
 #ghdl -a decode_table_reverse.vhd
 ghdl -a decode_table_rom.vhd
+#ghdl -a decode_table_simple.vhd
 
 ghdl -a  data_bus_pkg.vhd monitor_pkg.vhd ram_init.vhd lattice_ebr.vhd bus_monitor.vhd timeout_cnt.vhd cpu_simple_sram.vhd
 
