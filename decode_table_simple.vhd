@@ -925,6 +925,7 @@ begin
                     ex_stall.zbus_sel <= SEL_ARITH;
                     ex.arith_func <= SUB;
                     imm_enum <= IMM_P4;
+                    maskint_next <= '1';
                     -- MEM[Z] = Y long
                     ex_stall.ma_issue <= '1';
                     ex.ma_wr <= '1';
@@ -934,9 +935,6 @@ begin
                     -- Rn = Z
                     ex_stall.wrreg_z <= '1';
                     ex.regnum_z <= '0' & op.code(11 downto 8);
-
-                when x"1" =>
-                    maskint_next <= '1';
                     id.incpc <= '1';
                     dispatch <= '1';
                     id.if_issue <= '1';
@@ -960,6 +958,7 @@ begin
                     ex_stall.zbus_sel <= SEL_ARITH;
                     ex.arith_func <= SUB;
                     imm_enum <= IMM_P4;
+                    maskint_next <= '1';
                     -- MEM[Z] = Y long
                     ex_stall.ma_issue <= '1';
                     ex.ma_wr <= '1';
@@ -969,9 +968,6 @@ begin
                     -- Rn = Z
                     ex_stall.wrreg_z <= '1';
                     ex.regnum_z <= '0' & op.code(11 downto 8);
-
-                when x"1" =>
-                    maskint_next <= '1';
                     id.incpc <= '1';
                     dispatch <= '1';
                     id.if_issue <= '1';
@@ -995,6 +991,7 @@ begin
                     ex_stall.zbus_sel <= SEL_ARITH;
                     ex.arith_func <= SUB;
                     imm_enum <= IMM_P4;
+                    maskint_next <= '1';
                     -- MEM[Z] = Y long
                     ex_stall.ma_issue <= '1';
                     ex.ma_wr <= '1';
@@ -1004,9 +1001,6 @@ begin
                     -- Rn = Z
                     ex_stall.wrreg_z <= '1';
                     ex.regnum_z <= '0' & op.code(11 downto 8);
-
-                when x"1" =>
-                    maskint_next <= '1';
                     id.incpc <= '1';
                     dispatch <= '1';
                     id.if_issue <= '1';
