@@ -4,7 +4,7 @@ OBJS += uartlite.o
 #OBJS += uart16550.o
 
 TESTS_OBJS := testbra.o
-TESTS_OBJS += testmov.o testmov2.o testmov3.o
+TESTS_OBJS += testmov.o testmov2.o
 TESTS_OBJS += testalu.o
 TESTS_OBJS += testshift.o
 TESTS_OBJS += testmul.o testmulu.o testmuls.o testmull.o testdmulu.o testdmuls.o testmulconf.o
@@ -21,7 +21,8 @@ LDFLAGS = -T startup/sh32.x -Map main.map
 LIBGCC = $(shell $(CC) -print-libgcc-file-name)
 
 # CFLAGS := -mj2 -g -Os -Wall
-CFLAGS := -DNO_DDR -DNO_TESTS -mj2 -g -Os -Wall
+#CFLAGS := -DNO_DDR -DNO_TESTS -mj2 -g -Os -Wall
+CFLAGS := -DNO_DDR -mj2 -g -Os -Wall
 
 DDR ?= ddr16
 ifeq ($(DDR), lpddr)

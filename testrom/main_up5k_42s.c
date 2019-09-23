@@ -147,6 +147,10 @@ unsigned char lcd_init[] = { 0x40, 0xA1, 0xC0, 0xA6, 0xA2, 0x2F, 0xF8, 0x00, 0x2
 
 int march(void *base, int addrs, int sz);
 
+#ifndef NO_TESTS
+char ram0[256];
+#endif
+
 void
 main_sh (void)
 {

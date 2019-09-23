@@ -4,6 +4,7 @@ use ieee.numeric_std.all;
 use work.cpu2j0_pack.all;
 
 entity cpu_sram is 
+  generic ( ADDR_WIDTH : natural := 15 );
   port (
     clk : in std_logic;
     ibus_i : in cpu_instruction_o_t;
@@ -16,7 +17,7 @@ end;
 architecture struc of cpu_sram is
   signal db_we : std_logic_vector(3 downto 0);
   signal rd    : std_logic_vector(31 downto 0);
-  signal ra    : std_logic_vector(12 downto 2);
+  signal ra    : std_logic_vector(ADDR_WIDTH-1 downto 2);
   signal en    : std_logic;
   signal iclk : std_logic;
       
@@ -27,18 +28,18 @@ begin
            (db_i.wr and db_i.we(1)) &
            (db_i.wr and db_i.we(0));
 
-  ra <= db_i.a(12 downto 2) when db_i.en = '1' else ibus_i.a(12 downto 2);
+  ra <= db_i.a(ADDR_WIDTH-1 downto 2) when db_i.en = '1' else ibus_i.a(ADDR_WIDTH-1 downto 2);
 
   -- clk memory on negative edge to avoid wait states
   iclk <= not clk;
   en <= db_i.en or ibus_i.en;
 
   r : entity work.simple_ram
-    generic map (ADDR_WIDTH => 13)
+    generic map (ADDR_WIDTH => ADDR_WIDTH)
     port map(clk => iclk,
              en => en,
              we => db_we,
-             waddr => db_i.a(12 downto 2),
+             waddr => db_i.a(ADDR_WIDTH-1 downto 2),
              di => db_i.d,
 
              raddr => ra,

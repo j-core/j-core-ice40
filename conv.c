@@ -10,7 +10,7 @@ int main(int argc, char *argv[])
    printf("-- Machine generated from ram.img.\n");
    printf("library ieee;\n use ieee.std_logic_1164.all;\nuse ieee.numeric_std.all;\n\n");
    printf("package bootrom is\n");
-   printf("  type rom_t is array (0 to 2047) of std_logic_vector(31 downto 0);\n  constant rom : rom_t := (\n");
+   printf("  type rom_t is array (0 to 16383) of std_logic_vector(31 downto 0);\n  constant rom : rom_t := (\n");
 
    l = read(0,v,4);
    for (i=0 ; l; i++) {
