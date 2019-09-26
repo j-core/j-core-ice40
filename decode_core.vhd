@@ -9,11 +9,11 @@ entity decode_core is
 --    decode_type : cpu_decode_type_t := REVERSE;
 --    reset_vector : decode_core_reg_t := DEC_CORE_RESET);
 -- ROM
-    decode_type : cpu_decode_type_t := MICROCODE;
-    reset_vector : decode_core_reg_t := DEC_CORE_ROM_RESET);
+--    decode_type : cpu_decode_type_t := MICROCODE;
+--    reset_vector : decode_core_reg_t := DEC_CORE_ROM_RESET);
 -- staircase
---    decode_type : cpu_decode_type_t := SIMPLE;
---    reset_vector : decode_core_reg_t := DEC_CORE_RESET);
+    decode_type : cpu_decode_type_t := SIMPLE;
+    reset_vector : decode_core_reg_t := DEC_CORE_RESET);
   port (
     clk : in std_logic;
     delay_jump : in std_logic;

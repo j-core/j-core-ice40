@@ -112,22 +112,15 @@ begin
         if std_match(cond, "00000000000001000") then
             -- CLRT [0008]
             -- 0 -> T
-            case op.addr(3 downto 0) is
-                when x"0" =>
                     ex_stall.sr_sel <= SEL_SET_T;
                     ex_stall.t_sel <= SEL_CLEAR;
                     id.incpc <= '1';
                     dispatch <= '1';
                     id.if_issue <= '1';
 
-                when others =>
-
-            end case;
         elsif std_match(cond, "00000000000101000") then
             -- CLRMAC [0028]
             -- 0 -> MACH, MACL
-            case op.addr(3 downto 0) is
-                when x"0" =>
                     -- X = TEMP1
                     ex.xbus_sel <= SEL_REG;
                     ex.regnum_x <= "10100";
@@ -146,34 +139,21 @@ begin
                     dispatch <= '1';
                     id.if_issue <= '1';
 
-                when others =>
-
-            end case;
         elsif std_match(cond, "00000000000011001") then
             -- DIV0U [0019]
             -- 0 -> M/Q/T
-            case op.addr(3 downto 0) is
-                when x"0" =>
                     ex_stall.sr_sel <= SEL_DIV0U;
                     id.incpc <= '1';
                     dispatch <= '1';
                     id.if_issue <= '1';
 
-                when others =>
-
-            end case;
         elsif std_match(cond, "00000000000001001") then
             -- NOP [0009]
             -- no operation
-            case op.addr(3 downto 0) is
-                when x"0" =>
                     id.incpc <= '1';
                     dispatch <= '1';
                     id.if_issue <= '1';
 
-                when others =>
-
-            end case;
         elsif std_match(cond, "00000000000101011") then
             -- RTE [002B]
             -- Delayed branch, stack -> PC/SR
@@ -254,17 +234,12 @@ begin
         elsif std_match(cond, "00000000000011000") then
             -- SETT [0018]
             -- 1 -> T
-            case op.addr(3 downto 0) is
-                when x"0" =>
                     ex_stall.sr_sel <= SEL_SET_T;
                     ex_stall.t_sel <= SEL_SET;
                     id.incpc <= '1';
                     dispatch <= '1';
                     id.if_issue <= '1';
 
-                when others =>
-
-            end case;
         elsif std_match(cond, "00000000000011011") then
             -- SLEEP [001B]
             -- Sleep
@@ -287,21 +262,14 @@ begin
         elsif std_match(cond, "00000000000111011") then
             -- BGND [003B]
             -- Sleep
-            case op.addr(3 downto 0) is
-                when x"0" =>
                     id.incpc <= '1';
                     dispatch <= '1';
                     debug <= '1';
                     id.if_issue <= '1';
 
-                when others =>
-
-            end case;
         elsif std_match(cond, "00100----00010101") then
             -- CMP/PL Rn [4n15]
             -- Rn > 0, 1 -> T
-            case op.addr(3 downto 0) is
-                when x"0" =>
                     -- X = Rn
                     ex.xbus_sel <= SEL_REG;
                     ex.regnum_x <= '0' & op.code(11 downto 8);
@@ -315,14 +283,9 @@ begin
                     dispatch <= '1';
                     id.if_issue <= '1';
 
-                when others =>
-
-            end case;
         elsif std_match(cond, "00100----00010001") then
             -- CMP/PZ Rn [4n11]
             -- Rn >= 0, 1->T
-            case op.addr(3 downto 0) is
-                when x"0" =>
                     -- X = Rn
                     ex.xbus_sel <= SEL_REG;
                     ex.regnum_x <= '0' & op.code(11 downto 8);
@@ -336,14 +299,9 @@ begin
                     dispatch <= '1';
                     id.if_issue <= '1';
 
-                when others =>
-
-            end case;
         elsif std_match(cond, "00100----00010000") then
             -- DT Rn [4n10]
             -- Rn-1 ->Rn; If Rn is 0, 1 -> T, if Rn is nonzero, 0 -> T
-            case op.addr(3 downto 0) is
-                when x"0" =>
                     -- X = Rn
                     ex.xbus_sel <= SEL_REG;
                     ex.regnum_x <= '0' & op.code(11 downto 8);
@@ -362,14 +320,9 @@ begin
                     dispatch <= '1';
                     id.if_issue <= '1';
 
-                when others =>
-
-            end case;
         elsif std_match(cond, "00000----00101001") then
             -- MOVT Rn [0n29]
             -- T->Rn
-            case op.addr(3 downto 0) is
-                when x"0" =>
                     -- X = 1
                     ex.xbus_sel <= SEL_IMM;
                     -- Y = SR
@@ -385,14 +338,9 @@ begin
                     dispatch <= '1';
                     id.if_issue <= '1';
 
-                when others =>
-
-            end case;
         elsif std_match(cond, "00100----00000100") then
             -- ROTL Rn [4n04]
             -- T<-Rn<-MSB
-            case op.addr(3 downto 0) is
-                when x"0" =>
                     -- X = Rn
                     ex.xbus_sel <= SEL_REG;
                     ex.regnum_x <= '0' & op.code(11 downto 8);
@@ -411,14 +359,9 @@ begin
                     dispatch <= '1';
                     id.if_issue <= '1';
 
-                when others =>
-
-            end case;
         elsif std_match(cond, "00100----00000101") then
             -- ROTR Rn [4n05]
             -- LSB->Rn->T
-            case op.addr(3 downto 0) is
-                when x"0" =>
                     -- X = Rn
                     ex.xbus_sel <= SEL_REG;
                     ex.regnum_x <= '0' & op.code(11 downto 8);
@@ -437,14 +380,9 @@ begin
                     dispatch <= '1';
                     id.if_issue <= '1';
 
-                when others =>
-
-            end case;
         elsif std_match(cond, "00100----00100100") then
             -- ROTCL Rn [4n24]
             -- T<-Rn<-T
-            case op.addr(3 downto 0) is
-                when x"0" =>
                     -- X = Rn
                     ex.xbus_sel <= SEL_REG;
                     ex.regnum_x <= '0' & op.code(11 downto 8);
@@ -463,14 +401,9 @@ begin
                     dispatch <= '1';
                     id.if_issue <= '1';
 
-                when others =>
-
-            end case;
         elsif std_match(cond, "00100----00100101") then
             -- ROTCR Rn [4n25]
             -- T->Rn->T
-            case op.addr(3 downto 0) is
-                when x"0" =>
                     -- X = Rn
                     ex.xbus_sel <= SEL_REG;
                     ex.regnum_x <= '0' & op.code(11 downto 8);
@@ -489,14 +422,9 @@ begin
                     dispatch <= '1';
                     id.if_issue <= '1';
 
-                when others =>
-
-            end case;
         elsif std_match(cond, "00100----00100000") then
             -- SHAL Rn [4n20]
             -- T<-Rn<-0
-            case op.addr(3 downto 0) is
-                when x"0" =>
                     -- X = Rn
                     ex.xbus_sel <= SEL_REG;
                     ex.regnum_x <= '0' & op.code(11 downto 8);
@@ -515,14 +443,9 @@ begin
                     dispatch <= '1';
                     id.if_issue <= '1';
 
-                when others =>
-
-            end case;
         elsif std_match(cond, "00100----00100001") then
             -- SHAR Rn [4n21]
             -- MSB->Rn->T
-            case op.addr(3 downto 0) is
-                when x"0" =>
                     -- X = Rn
                     ex.xbus_sel <= SEL_REG;
                     ex.regnum_x <= '0' & op.code(11 downto 8);
@@ -541,14 +464,9 @@ begin
                     dispatch <= '1';
                     id.if_issue <= '1';
 
-                when others =>
-
-            end case;
         elsif std_match(cond, "00100----00000000") then
             -- SHLL Rn [4n00]
             -- T<-Rn<-0
-            case op.addr(3 downto 0) is
-                when x"0" =>
                     -- X = Rn
                     ex.xbus_sel <= SEL_REG;
                     ex.regnum_x <= '0' & op.code(11 downto 8);
@@ -567,14 +485,9 @@ begin
                     dispatch <= '1';
                     id.if_issue <= '1';
 
-                when others =>
-
-            end case;
         elsif std_match(cond, "00100----00000001") then
             -- SHLR Rn [4n01]
             -- 0->Rn->T
-            case op.addr(3 downto 0) is
-                when x"0" =>
                     -- X = Rn
                     ex.xbus_sel <= SEL_REG;
                     ex.regnum_x <= '0' & op.code(11 downto 8);
@@ -593,14 +506,9 @@ begin
                     dispatch <= '1';
                     id.if_issue <= '1';
 
-                when others =>
-
-            end case;
         elsif std_match(cond, "00100----00001000") then
             -- SHLL2 Rn [4n08]
             -- Rn<<2 -> Rn
-            case op.addr(3 downto 0) is
-                when x"0" =>
                     -- X = Rn
                     ex.xbus_sel <= SEL_REG;
                     ex.regnum_x <= '0' & op.code(11 downto 8);
@@ -617,14 +525,9 @@ begin
                     dispatch <= '1';
                     id.if_issue <= '1';
 
-                when others =>
-
-            end case;
         elsif std_match(cond, "00100----00001001") then
             -- SHLR2 Rn [4n09]
             -- Rn>>2 -> Rn
-            case op.addr(3 downto 0) is
-                when x"0" =>
                     -- X = Rn
                     ex.xbus_sel <= SEL_REG;
                     ex.regnum_x <= '0' & op.code(11 downto 8);
@@ -641,14 +544,9 @@ begin
                     dispatch <= '1';
                     id.if_issue <= '1';
 
-                when others =>
-
-            end case;
         elsif std_match(cond, "00100----00011000") then
             -- SHLL8 Rn [4n18]
             -- Rn<<8 -> Rn
-            case op.addr(3 downto 0) is
-                when x"0" =>
                     -- X = Rn
                     ex.xbus_sel <= SEL_REG;
                     ex.regnum_x <= '0' & op.code(11 downto 8);
@@ -665,14 +563,9 @@ begin
                     dispatch <= '1';
                     id.if_issue <= '1';
 
-                when others =>
-
-            end case;
         elsif std_match(cond, "00100----00011001") then
             -- SHLR8 Rn [4n19]
             -- Rn>>8 -> Rn
-            case op.addr(3 downto 0) is
-                when x"0" =>
                     -- X = Rn
                     ex.xbus_sel <= SEL_REG;
                     ex.regnum_x <= '0' & op.code(11 downto 8);
@@ -689,14 +582,9 @@ begin
                     dispatch <= '1';
                     id.if_issue <= '1';
 
-                when others =>
-
-            end case;
         elsif std_match(cond, "00100----00101000") then
             -- SHLL16 Rn [4n28]
             -- Rn<<16 -> Rn
-            case op.addr(3 downto 0) is
-                when x"0" =>
                     -- X = Rn
                     ex.xbus_sel <= SEL_REG;
                     ex.regnum_x <= '0' & op.code(11 downto 8);
@@ -713,14 +601,9 @@ begin
                     dispatch <= '1';
                     id.if_issue <= '1';
 
-                when others =>
-
-            end case;
         elsif std_match(cond, "00100----00101001") then
             -- SHLR16 Rn [4n29]
             -- Rn>>16 -> Rn
-            case op.addr(3 downto 0) is
-                when x"0" =>
                     -- X = Rn
                     ex.xbus_sel <= SEL_REG;
                     ex.regnum_x <= '0' & op.code(11 downto 8);
@@ -737,14 +620,9 @@ begin
                     dispatch <= '1';
                     id.if_issue <= '1';
 
-                when others =>
-
-            end case;
         elsif std_match(cond, "00000----00000010") then
             -- STC SR, Rn [0n02]
             -- SR->Rn
-            case op.addr(3 downto 0) is
-                when x"0" =>
                     -- Y = SR
                     ex.ybus_sel <= SEL_SR;
                     ex_stall.zbus_sel <= SEL_YBUS;
@@ -756,14 +634,9 @@ begin
                     dispatch <= '1';
                     id.if_issue <= '1';
 
-                when others =>
-
-            end case;
         elsif std_match(cond, "00000----00010010") then
             -- STC GBR, Rn [0n12]
             -- GBR->Rn
-            case op.addr(3 downto 0) is
-                when x"0" =>
                     -- Y = GBR
                     ex.ybus_sel <= SEL_REG;
                     ex.regnum_y <= "10000";
@@ -776,14 +649,9 @@ begin
                     dispatch <= '1';
                     id.if_issue <= '1';
 
-                when others =>
-
-            end case;
         elsif std_match(cond, "00000----00100010") then
             -- STC VBR, Rn [0n22]
             -- VBR->Rn
-            case op.addr(3 downto 0) is
-                when x"0" =>
                     -- Y = VBR
                     ex.ybus_sel <= SEL_REG;
                     ex.regnum_y <= "10001";
@@ -796,14 +664,9 @@ begin
                     dispatch <= '1';
                     id.if_issue <= '1';
 
-                when others =>
-
-            end case;
         elsif std_match(cond, "00000----00001010") then
             -- STS MACH, Rn [0n0A]
             -- MACH->Rn
-            case op.addr(3 downto 0) is
-                when x"0" =>
                     -- Y = MACH
                     ex.ybus_sel <= SEL_MACH;
                     ex_stall.zbus_sel <= SEL_YBUS;
@@ -816,14 +679,9 @@ begin
                     dispatch <= '1';
                     id.if_issue <= '1';
 
-                when others =>
-
-            end case;
         elsif std_match(cond, "00000----00011010") then
             -- STS MACL, Rn [0n1A]
             -- MACL->Rn
-            case op.addr(3 downto 0) is
-                when x"0" =>
                     -- Y = MACL
                     ex.ybus_sel <= SEL_MACL;
                     ex_stall.zbus_sel <= SEL_YBUS;
@@ -836,14 +694,9 @@ begin
                     dispatch <= '1';
                     id.if_issue <= '1';
 
-                when others =>
-
-            end case;
         elsif std_match(cond, "00000----00101010") then
             -- STS PR, Rn [0n2A]
             -- PR->Rn
-            case op.addr(3 downto 0) is
-                when x"0" =>
                     -- Y = PR
                     ex.ybus_sel <= SEL_REG;
                     ex.regnum_y <= "10010";
@@ -856,9 +709,6 @@ begin
                     dispatch <= '1';
                     id.if_issue <= '1';
 
-                when others =>
-
-            end case;
         elsif std_match(cond, "00100----00011011") then
             -- TAS.B @Rn [4n1B]
             -- When (Rn) is 0, 1 -> T, 1 -> MSB of (Rn)
@@ -913,8 +763,6 @@ begin
         elsif std_match(cond, "00100----00000011") then
             -- STC.L SR, @-Rn [4n03]
             -- Rn-4 ->Rn,SR ->(Rn)
-            case op.addr(3 downto 0) is
-                when x"0" =>
                     -- X = Rn
                     ex.xbus_sel <= SEL_REG;
                     ex.regnum_x <= '0' & op.code(11 downto 8);
@@ -939,14 +787,9 @@ begin
                     dispatch <= '1';
                     id.if_issue <= '1';
 
-                when others =>
-
-            end case;
         elsif std_match(cond, "00100----00010011") then
             -- STC.L GBR, @-Rn [4n13]
             -- Rn-4 ->Rn,GBR ->(Rn)
-            case op.addr(3 downto 0) is
-                when x"0" =>
                     -- X = Rn
                     ex.xbus_sel <= SEL_REG;
                     ex.regnum_x <= '0' & op.code(11 downto 8);
@@ -972,14 +815,9 @@ begin
                     dispatch <= '1';
                     id.if_issue <= '1';
 
-                when others =>
-
-            end case;
         elsif std_match(cond, "00100----00100011") then
             -- STC.L VBR, @-Rn [4n23]
             -- Rn - 4 -> Rn, VBR -> (Rn)
-            case op.addr(3 downto 0) is
-                when x"0" =>
                     -- X = Rn
                     ex.xbus_sel <= SEL_REG;
                     ex.regnum_x <= '0' & op.code(11 downto 8);
@@ -1005,14 +843,9 @@ begin
                     dispatch <= '1';
                     id.if_issue <= '1';
 
-                when others =>
-
-            end case;
         elsif std_match(cond, "00100----00000010") then
             -- STS.L MACH, @-Rn [4n02]
             -- Rn - 4 -> Rn, MACH -> (Rn)
-            case op.addr(3 downto 0) is
-                when x"0" =>
                     -- X = Rn
                     ex.xbus_sel <= SEL_REG;
                     ex.regnum_x <= '0' & op.code(11 downto 8);
@@ -1038,14 +871,9 @@ begin
                     dispatch <= '1';
                     id.if_issue <= '1';
 
-                when others =>
-
-            end case;
         elsif std_match(cond, "00100----00010010") then
             -- STS.L MACL, @-Rn [4n12]
             -- Rn-4->Rn,MACL->(Rn)
-            case op.addr(3 downto 0) is
-                when x"0" =>
                     -- X = Rn
                     ex.xbus_sel <= SEL_REG;
                     ex.regnum_x <= '0' & op.code(11 downto 8);
@@ -1071,14 +899,9 @@ begin
                     dispatch <= '1';
                     id.if_issue <= '1';
 
-                when others =>
-
-            end case;
         elsif std_match(cond, "00100----00100010") then
             -- STS.L PR, @-Rn [4n22]
             -- Rn-4->Rn,PR->(Rn)
-            case op.addr(3 downto 0) is
-                when x"0" =>
                     -- X = Rn
                     ex.xbus_sel <= SEL_REG;
                     ex.regnum_x <= '0' & op.code(11 downto 8);
@@ -1104,14 +927,9 @@ begin
                     dispatch <= '1';
                     id.if_issue <= '1';
 
-                when others =>
-
-            end case;
         elsif std_match(cond, "00100----00001110") then
             -- LDC Rm, SR [4m0E]
             -- Rm -> SR
-            case op.addr(3 downto 0) is
-                when x"0" =>
                     -- Y = Rm
                     ex.ybus_sel <= SEL_REG;
                     ex.regnum_y <= '0' & op.code(11 downto 8);
@@ -1124,14 +942,9 @@ begin
                     dispatch <= '1';
                     id.if_issue <= '1';
 
-                when others =>
-
-            end case;
         elsif std_match(cond, "00100----00011110") then
             -- LDC, Rm, GBR [4m1E]
             -- Rm -> GBR
-            case op.addr(3 downto 0) is
-                when x"0" =>
                     -- Y = Rm
                     ex.ybus_sel <= SEL_REG;
                     ex.regnum_y <= '0' & op.code(11 downto 8);
@@ -1144,14 +957,9 @@ begin
                     dispatch <= '1';
                     id.if_issue <= '1';
 
-                when others =>
-
-            end case;
         elsif std_match(cond, "00100----00101110") then
             -- LDC Rm, VBR [4m2E]
             -- Rm -> VBR
-            case op.addr(3 downto 0) is
-                when x"0" =>
                     -- Y = Rm
                     ex.ybus_sel <= SEL_REG;
                     ex.regnum_y <= '0' & op.code(11 downto 8);
@@ -1164,14 +972,9 @@ begin
                     dispatch <= '1';
                     id.if_issue <= '1';
 
-                when others =>
-
-            end case;
         elsif std_match(cond, "00100----00001010") then
             -- LDS Rm, MACH [4m0A]
             -- Rm-> MACH
-            case op.addr(3 downto 0) is
-                when x"0" =>
                     -- Y = Rm
                     ex.ybus_sel <= SEL_REG;
                     ex.regnum_y <= '0' & op.code(11 downto 8);
@@ -1184,14 +987,9 @@ begin
                     dispatch <= '1';
                     id.if_issue <= '1';
 
-                when others =>
-
-            end case;
         elsif std_match(cond, "00100----00011010") then
             -- LDS Rm, MACL [4m1A]
             -- Rm -> MACL
-            case op.addr(3 downto 0) is
-                when x"0" =>
                     -- Y = Rm
                     ex.ybus_sel <= SEL_REG;
                     ex.regnum_y <= '0' & op.code(11 downto 8);
@@ -1204,14 +1002,9 @@ begin
                     dispatch <= '1';
                     id.if_issue <= '1';
 
-                when others =>
-
-            end case;
         elsif std_match(cond, "00100----00101010") then
             -- LDS Rm, PR [4m2A]
             -- Rm -> PR
-            case op.addr(3 downto 0) is
-                when x"0" =>
                     -- Y = Rm
                     ex.ybus_sel <= SEL_REG;
                     ex.regnum_y <= '0' & op.code(11 downto 8);
@@ -1224,9 +1017,6 @@ begin
                     dispatch <= '1';
                     id.if_issue <= '1';
 
-                when others =>
-
-            end case;
         elsif std_match(cond, "00100----00101011") then
             -- JMP @Rm [4m2B]
             -- Rm -> PC
@@ -1401,8 +1191,6 @@ begin
         elsif std_match(cond, "00100----00000110") then
             -- LDS.L @Rm+, MACH [4m06]
             -- (Rm)->MACH,Rm+4->Rm
-            case op.addr(3 downto 0) is
-                when x"0" =>
                     -- X = Rm
                     ex.xbus_sel <= SEL_REG;
                     ex.regnum_x <= '0' & op.code(11 downto 8);
@@ -1428,14 +1216,9 @@ begin
                     dispatch <= '1';
                     id.if_issue <= '1';
 
-                when others =>
-
-            end case;
         elsif std_match(cond, "00100----00010110") then
             -- LDS.L @Rm+, MACL [4m16]
             -- (Rm)->MACL,Rm+4->Rm
-            case op.addr(3 downto 0) is
-                when x"0" =>
                     -- X = Rm
                     ex.xbus_sel <= SEL_REG;
                     ex.regnum_x <= '0' & op.code(11 downto 8);
@@ -1461,9 +1244,6 @@ begin
                     dispatch <= '1';
                     id.if_issue <= '1';
 
-                when others =>
-
-            end case;
         elsif std_match(cond, "00100----00100110") then
             -- LDS.L @Rm+, PR [4m26]
             -- (Rm)->PR,Rm+4->Rm
@@ -1561,8 +1341,6 @@ begin
         elsif std_match(cond, "00011--------1100") then
             -- ADD Rm, Rn [3nmC]
             -- Rn+Rm->Rn
-            case op.addr(3 downto 0) is
-                when x"0" =>
                     -- X = Rn
                     ex.xbus_sel <= SEL_REG;
                     ex.regnum_x <= '0' & op.code(11 downto 8);
@@ -1579,14 +1357,9 @@ begin
                     dispatch <= '1';
                     id.if_issue <= '1';
 
-                when others =>
-
-            end case;
         elsif std_match(cond, "00011--------1110") then
             -- ADDC Rm, Rn [3nmE]
             -- Rn + Rm + T -> Rn, carry ->T
-            case op.addr(3 downto 0) is
-                when x"0" =>
                     -- X = Rn
                     ex.xbus_sel <= SEL_REG;
                     ex.regnum_x <= '0' & op.code(11 downto 8);
@@ -1606,14 +1379,9 @@ begin
                     dispatch <= '1';
                     id.if_issue <= '1';
 
-                when others =>
-
-            end case;
         elsif std_match(cond, "00011--------1111") then
             -- ADDV Rm, Rn [3nmF]
             -- Rn + Rm -> Rn, overflow ->T
-            case op.addr(3 downto 0) is
-                when x"0" =>
                     -- X = Rn
                     ex.xbus_sel <= SEL_REG;
                     ex.regnum_x <= '0' & op.code(11 downto 8);
@@ -1632,14 +1400,9 @@ begin
                     dispatch <= '1';
                     id.if_issue <= '1';
 
-                when others =>
-
-            end case;
         elsif std_match(cond, "00010--------1001") then
             -- AND Rm, Rn [2nm9]
             -- Rn&Rm->Rn
-            case op.addr(3 downto 0) is
-                when x"0" =>
                     -- X = Rn
                     ex.xbus_sel <= SEL_REG;
                     ex.regnum_x <= '0' & op.code(11 downto 8);
@@ -1656,14 +1419,9 @@ begin
                     dispatch <= '1';
                     id.if_issue <= '1';
 
-                when others =>
-
-            end case;
         elsif std_match(cond, "00011--------0000") then
             -- CMP /EQ Rm, Rn [3nm0]
             -- When Rn=Rm,1->T
-            case op.addr(3 downto 0) is
-                when x"0" =>
                     -- X = Rn
                     ex.xbus_sel <= SEL_REG;
                     ex.regnum_x <= '0' & op.code(11 downto 8);
@@ -1677,14 +1435,9 @@ begin
                     dispatch <= '1';
                     id.if_issue <= '1';
 
-                when others =>
-
-            end case;
         elsif std_match(cond, "00011--------0010") then
             -- CMP /HS Rm, Rn [3nm2]
             -- When unsigned and Rn >= Rm,1->T
-            case op.addr(3 downto 0) is
-                when x"0" =>
                     -- X = Rn
                     ex.xbus_sel <= SEL_REG;
                     ex.regnum_x <= '0' & op.code(11 downto 8);
@@ -1698,14 +1451,9 @@ begin
                     dispatch <= '1';
                     id.if_issue <= '1';
 
-                when others =>
-
-            end case;
         elsif std_match(cond, "00011--------0011") then
             -- CMP /GE Rm, Rn [3nm3]
             -- When signed and Rn >= Rm,1->T
-            case op.addr(3 downto 0) is
-                when x"0" =>
                     -- X = Rn
                     ex.xbus_sel <= SEL_REG;
                     ex.regnum_x <= '0' & op.code(11 downto 8);
@@ -1719,14 +1467,9 @@ begin
                     dispatch <= '1';
                     id.if_issue <= '1';
 
-                when others =>
-
-            end case;
         elsif std_match(cond, "00011--------0110") then
             -- CMP /HI Rm, Rn [3nm6]
             -- When unsigned and Rn > Rm,1->T
-            case op.addr(3 downto 0) is
-                when x"0" =>
                     -- X = Rn
                     ex.xbus_sel <= SEL_REG;
                     ex.regnum_x <= '0' & op.code(11 downto 8);
@@ -1740,14 +1483,9 @@ begin
                     dispatch <= '1';
                     id.if_issue <= '1';
 
-                when others =>
-
-            end case;
         elsif std_match(cond, "00011--------0111") then
             -- CMP /GT Rm, Rn [3nm7]
             -- When signed and Rn > Rm,1->T
-            case op.addr(3 downto 0) is
-                when x"0" =>
                     -- X = Rn
                     ex.xbus_sel <= SEL_REG;
                     ex.regnum_x <= '0' & op.code(11 downto 8);
@@ -1761,14 +1499,9 @@ begin
                     dispatch <= '1';
                     id.if_issue <= '1';
 
-                when others =>
-
-            end case;
         elsif std_match(cond, "00010--------1100") then
             -- CMP /STR Rm, Rn [2nmC]
             -- When a byte in Rn equals a byte in Rm, 1-> T
-            case op.addr(3 downto 0) is
-                when x"0" =>
                     -- X = Rn
                     ex.xbus_sel <= SEL_REG;
                     ex.regnum_x <= '0' & op.code(11 downto 8);
@@ -1782,9 +1515,6 @@ begin
                     dispatch <= '1';
                     id.if_issue <= '1';
 
-                when others =>
-
-            end case;
         elsif std_match(cond, "00010--------0011") then
             -- CAS Rm, Rn, @R0 [2nm3]
             -- When a byte in Rn equals a byte in Rm, 1-> T
@@ -1853,8 +1583,6 @@ begin
         elsif std_match(cond, "00011--------0100") then
             -- DIV1 Rm, Rn [3nm4]
             -- 1-step division (Rn ÷ Rm)
-            case op.addr(3 downto 0) is
-                when x"0" =>
                     -- X = Rn
                     ex.xbus_sel <= SEL_REG;
                     ex.regnum_x <= '0' & op.code(11 downto 8);
@@ -1874,14 +1602,9 @@ begin
                     dispatch <= '1';
                     id.if_issue <= '1';
 
-                when others =>
-
-            end case;
         elsif std_match(cond, "00010--------0111") then
             -- DIV0S Rm, Rn [2nm7]
             -- MSB of Rn-> Q, MSB of Rm->M,M^Q->T
-            case op.addr(3 downto 0) is
-                when x"0" =>
                     -- X = Rn
                     ex.xbus_sel <= SEL_REG;
                     ex.regnum_x <= '0' & op.code(11 downto 8);
@@ -1895,14 +1618,9 @@ begin
                     dispatch <= '1';
                     id.if_issue <= '1';
 
-                when others =>
-
-            end case;
         elsif std_match(cond, "00011--------1101") then
             -- DMULS.L Rm, Rn [3nmD]
             -- Signed, Rn x Rm, MACH, MACL
-            case op.addr(3 downto 0) is
-                when x"0" =>
                     -- X = Rn
                     ex.xbus_sel <= SEL_REG;
                     ex.regnum_x <= '0' & op.code(11 downto 8);
@@ -1919,14 +1637,9 @@ begin
                     dispatch <= '1';
                     id.if_issue <= '1';
 
-                when others =>
-
-            end case;
         elsif std_match(cond, "00011--------0101") then
             -- DMULU.L Rm, Rn [3nm5]
             -- Unsigned, Rn x Rm, MACH, MACL
-            case op.addr(3 downto 0) is
-                when x"0" =>
                     -- X = Rn
                     ex.xbus_sel <= SEL_REG;
                     ex.regnum_x <= '0' & op.code(11 downto 8);
@@ -1943,14 +1656,9 @@ begin
                     dispatch <= '1';
                     id.if_issue <= '1';
 
-                when others =>
-
-            end case;
         elsif std_match(cond, "00110--------1110") then
             -- EXTS.B Rm, Rn [6nmE]
             -- Sign-extends Rm from byte -> Rn
-            case op.addr(3 downto 0) is
-                when x"0" =>
                     -- Y = Rm
                     ex.ybus_sel <= SEL_REG;
                     ex.regnum_y <= '0' & op.code(7 downto 4);
@@ -1964,14 +1672,9 @@ begin
                     dispatch <= '1';
                     id.if_issue <= '1';
 
-                when others =>
-
-            end case;
         elsif std_match(cond, "00110--------1111") then
             -- EXTS.W Rm, Rn [6nmF]
             -- Sign-extends Rm from word -> Rn
-            case op.addr(3 downto 0) is
-                when x"0" =>
                     -- Y = Rm
                     ex.ybus_sel <= SEL_REG;
                     ex.regnum_y <= '0' & op.code(7 downto 4);
@@ -1985,14 +1688,9 @@ begin
                     dispatch <= '1';
                     id.if_issue <= '1';
 
-                when others =>
-
-            end case;
         elsif std_match(cond, "00110--------1100") then
             -- EXTU.B Rm, Rn [6nmC]
             -- Zero-extends Rm from byte -> Rn
-            case op.addr(3 downto 0) is
-                when x"0" =>
                     -- Y = Rm
                     ex.ybus_sel <= SEL_REG;
                     ex.regnum_y <= '0' & op.code(7 downto 4);
@@ -2006,14 +1704,9 @@ begin
                     dispatch <= '1';
                     id.if_issue <= '1';
 
-                when others =>
-
-            end case;
         elsif std_match(cond, "00110--------1101") then
             -- EXTU.W Rm, Rn [6nmD]
             -- Zero-extends Rm from word -> Rn
-            case op.addr(3 downto 0) is
-                when x"0" =>
                     -- Y = Rm
                     ex.ybus_sel <= SEL_REG;
                     ex.regnum_y <= '0' & op.code(7 downto 4);
@@ -2027,14 +1720,9 @@ begin
                     dispatch <= '1';
                     id.if_issue <= '1';
 
-                when others =>
-
-            end case;
         elsif std_match(cond, "00110--------0011") then
             -- MOV Rm, Rn [6nm3]
             -- Rm->Rn
-            case op.addr(3 downto 0) is
-                when x"0" =>
                     -- Y = Rm
                     ex.ybus_sel <= SEL_REG;
                     ex.regnum_y <= '0' & op.code(7 downto 4);
@@ -2046,14 +1734,9 @@ begin
                     dispatch <= '1';
                     id.if_issue <= '1';
 
-                when others =>
-
-            end case;
         elsif std_match(cond, "00000--------0111") then
             -- MUL.L Rm, Rn [0nm7]
             -- RnxRm->MACL
-            case op.addr(3 downto 0) is
-                when x"0" =>
                     -- X = Rn
                     ex.xbus_sel <= SEL_REG;
                     ex.regnum_x <= '0' & op.code(11 downto 8);
@@ -2070,14 +1753,9 @@ begin
                     dispatch <= '1';
                     id.if_issue <= '1';
 
-                when others =>
-
-            end case;
         elsif std_match(cond, "00010--------1111") then
             -- MULS.W Rm, Rn [2nmF]
             -- Signed, Rn x Rm -> MAC
-            case op.addr(3 downto 0) is
-                when x"0" =>
                     -- X = Rn
                     ex.xbus_sel <= SEL_REG;
                     ex.regnum_x <= '0' & op.code(11 downto 8);
@@ -2094,14 +1772,9 @@ begin
                     dispatch <= '1';
                     id.if_issue <= '1';
 
-                when others =>
-
-            end case;
         elsif std_match(cond, "00010--------1110") then
             -- MULU.W Rm, Rn [2nmE]
             -- Unsigned, Rn x Rm -> MAC
-            case op.addr(3 downto 0) is
-                when x"0" =>
                     -- X = Rn
                     ex.xbus_sel <= SEL_REG;
                     ex.regnum_x <= '0' & op.code(11 downto 8);
@@ -2118,14 +1791,9 @@ begin
                     dispatch <= '1';
                     id.if_issue <= '1';
 
-                when others =>
-
-            end case;
         elsif std_match(cond, "00110--------1011") then
             -- NEG Rm, Rn [6nmB]
             -- 0-Rm->Rn
-            case op.addr(3 downto 0) is
-                when x"0" =>
                     -- X = 0
                     ex.xbus_sel <= SEL_IMM;
                     -- Y = Rm
@@ -2142,14 +1810,9 @@ begin
                     dispatch <= '1';
                     id.if_issue <= '1';
 
-                when others =>
-
-            end case;
         elsif std_match(cond, "00110--------1010") then
             -- NEGC Rm, Rn [6nmA]
             -- 0-Rm-T -> Rn, borrow ->T
-            case op.addr(3 downto 0) is
-                when x"0" =>
                     -- X = 0
                     ex.xbus_sel <= SEL_IMM;
                     -- Y = Rm
@@ -2169,14 +1832,9 @@ begin
                     dispatch <= '1';
                     id.if_issue <= '1';
 
-                when others =>
-
-            end case;
         elsif std_match(cond, "00110--------0111") then
             -- NOT Rm, Rn [6nm7]
             -- ~Rm->Rn
-            case op.addr(3 downto 0) is
-                when x"0" =>
                     -- X = 0
                     ex.xbus_sel <= SEL_IMM;
                     -- Y = Rm
@@ -2193,14 +1851,9 @@ begin
                     dispatch <= '1';
                     id.if_issue <= '1';
 
-                when others =>
-
-            end case;
         elsif std_match(cond, "00010--------1011") then
             -- OR Rm, Rn [2nmB]
             -- Rn | Rm-> Rn
-            case op.addr(3 downto 0) is
-                when x"0" =>
                     -- X = Rn
                     ex.xbus_sel <= SEL_REG;
                     ex.regnum_x <= '0' & op.code(11 downto 8);
@@ -2217,14 +1870,9 @@ begin
                     dispatch <= '1';
                     id.if_issue <= '1';
 
-                when others =>
-
-            end case;
         elsif std_match(cond, "00011--------1000") then
             -- SUB Rm, Rn [3nm8]
             -- Rn - Rm ->Rn
-            case op.addr(3 downto 0) is
-                when x"0" =>
                     -- X = Rn
                     ex.xbus_sel <= SEL_REG;
                     ex.regnum_x <= '0' & op.code(11 downto 8);
@@ -2241,14 +1889,9 @@ begin
                     dispatch <= '1';
                     id.if_issue <= '1';
 
-                when others =>
-
-            end case;
         elsif std_match(cond, "00011--------1010") then
             -- SUBC Rm, Rn [3nmA]
             -- Rn - Rm-T ->Rn, borrow -> T
-            case op.addr(3 downto 0) is
-                when x"0" =>
                     -- X = Rn
                     ex.xbus_sel <= SEL_REG;
                     ex.regnum_x <= '0' & op.code(11 downto 8);
@@ -2268,14 +1911,9 @@ begin
                     dispatch <= '1';
                     id.if_issue <= '1';
 
-                when others =>
-
-            end case;
         elsif std_match(cond, "00011--------1011") then
             -- SUBV Rm, Rn [3nmB]
             -- Rn - Rm -> Rn, underflow ->T
-            case op.addr(3 downto 0) is
-                when x"0" =>
                     -- X = Rn
                     ex.xbus_sel <= SEL_REG;
                     ex.regnum_x <= '0' & op.code(11 downto 8);
@@ -2294,14 +1932,9 @@ begin
                     dispatch <= '1';
                     id.if_issue <= '1';
 
-                when others =>
-
-            end case;
         elsif std_match(cond, "00110--------1000") then
             -- SWAP.B Rm, Rn [6nm8]
             -- Rm -> Swap upper and lower halves of lower 2 bytes -> Rn
-            case op.addr(3 downto 0) is
-                when x"0" =>
                     -- Y = Rm
                     ex.ybus_sel <= SEL_REG;
                     ex.regnum_y <= '0' & op.code(7 downto 4);
@@ -2315,14 +1948,9 @@ begin
                     dispatch <= '1';
                     id.if_issue <= '1';
 
-                when others =>
-
-            end case;
         elsif std_match(cond, "00110--------1001") then
             -- SWAP.W Rm, Rn [6nm9]
             -- Rm -> Swap upper and lower word -> Rn
-            case op.addr(3 downto 0) is
-                when x"0" =>
                     -- Y = Rm
                     ex.ybus_sel <= SEL_REG;
                     ex.regnum_y <= '0' & op.code(7 downto 4);
@@ -2336,14 +1964,9 @@ begin
                     dispatch <= '1';
                     id.if_issue <= '1';
 
-                when others =>
-
-            end case;
         elsif std_match(cond, "00010--------1000") then
             -- TST Rm, Rn [2nm8]
             -- Rn & Rm, when result is 0, 1 -> T
-            case op.addr(3 downto 0) is
-                when x"0" =>
                     -- X = Rn
                     ex.xbus_sel <= SEL_REG;
                     ex.regnum_x <= '0' & op.code(11 downto 8);
@@ -2357,14 +1980,9 @@ begin
                     dispatch <= '1';
                     id.if_issue <= '1';
 
-                when others =>
-
-            end case;
         elsif std_match(cond, "00010--------1010") then
             -- XOR Rm, Rn [2nmA]
             -- Rn ^ Rm-> Rn
-            case op.addr(3 downto 0) is
-                when x"0" =>
                     -- X = Rn
                     ex.xbus_sel <= SEL_REG;
                     ex.regnum_x <= '0' & op.code(11 downto 8);
@@ -2381,14 +1999,9 @@ begin
                     dispatch <= '1';
                     id.if_issue <= '1';
 
-                when others =>
-
-            end case;
         elsif std_match(cond, "00010--------1101") then
             -- XTRACT Rm, Rn [2nmD]
             -- Centre 32 bits of Rm and Rn -> Rn
-            case op.addr(3 downto 0) is
-                when x"0" =>
                     -- X = Rn
                     ex.xbus_sel <= SEL_REG;
                     ex.regnum_x <= '0' & op.code(11 downto 8);
@@ -2405,14 +2018,9 @@ begin
                     dispatch <= '1';
                     id.if_issue <= '1';
 
-                when others =>
-
-            end case;
         elsif std_match(cond, "00100--------1100") then
             -- SHAD Rm, Rn [4nmC]
             -- 
-            case op.addr(3 downto 0) is
-                when x"0" =>
                     -- X = Rn
                     ex.xbus_sel <= SEL_REG;
                     ex.regnum_x <= '0' & op.code(11 downto 8);
@@ -2429,14 +2037,9 @@ begin
                     dispatch <= '1';
                     id.if_issue <= '1';
 
-                when others =>
-
-            end case;
         elsif std_match(cond, "00100--------1101") then
             -- SHLD Rm, Rn [4nmD]
             -- 
-            case op.addr(3 downto 0) is
-                when x"0" =>
                     -- X = Rn
                     ex.xbus_sel <= SEL_REG;
                     ex.regnum_x <= '0' & op.code(11 downto 8);
@@ -2453,14 +2056,9 @@ begin
                     dispatch <= '1';
                     id.if_issue <= '1';
 
-                when others =>
-
-            end case;
         elsif std_match(cond, "00010--------0000") then
             -- MOV.B Rm, @Rn [2nm0]
             -- Rm -> (Rn)
-            case op.addr(3 downto 0) is
-                when x"0" =>
                     -- X = Rn
                     ex.xbus_sel <= SEL_REG;
                     ex.regnum_x <= '0' & op.code(11 downto 8);
@@ -2482,14 +2080,9 @@ begin
                     dispatch <= '1';
                     id.if_issue <= '1';
 
-                when others =>
-
-            end case;
         elsif std_match(cond, "00010--------0001") then
             -- MOV.W Rm, @Rn [2nm1]
             -- Rm -> (Rn)
-            case op.addr(3 downto 0) is
-                when x"0" =>
                     -- X = Rn
                     ex.xbus_sel <= SEL_REG;
                     ex.regnum_x <= '0' & op.code(11 downto 8);
@@ -2511,14 +2104,9 @@ begin
                     dispatch <= '1';
                     id.if_issue <= '1';
 
-                when others =>
-
-            end case;
         elsif std_match(cond, "00010--------0010") then
             -- MOV.L Rm, @Rn [2nm2]
             -- Rm -> (Rn)
-            case op.addr(3 downto 0) is
-                when x"0" =>
                     -- X = Rn
                     ex.xbus_sel <= SEL_REG;
                     ex.regnum_x <= '0' & op.code(11 downto 8);
@@ -2540,14 +2128,9 @@ begin
                     dispatch <= '1';
                     id.if_issue <= '1';
 
-                when others =>
-
-            end case;
         elsif std_match(cond, "00110--------0000") then
             -- MOV.B @Rm, Rn [6nm0]
             -- (Rm) -> sign extension -> Rn
-            case op.addr(3 downto 0) is
-                when x"0" =>
                     -- Y = Rm
                     ex.ybus_sel <= SEL_REG;
                     ex.regnum_y <= '0' & op.code(7 downto 4);
@@ -2564,14 +2147,9 @@ begin
                     dispatch <= '1';
                     id.if_issue <= '1';
 
-                when others =>
-
-            end case;
         elsif std_match(cond, "00110--------0001") then
             -- MOV.W @Rm, Rn [6nm1]
             -- (Rm) -> sign extension -> Rn
-            case op.addr(3 downto 0) is
-                when x"0" =>
                     -- Y = Rm
                     ex.ybus_sel <= SEL_REG;
                     ex.regnum_y <= '0' & op.code(7 downto 4);
@@ -2588,14 +2166,9 @@ begin
                     dispatch <= '1';
                     id.if_issue <= '1';
 
-                when others =>
-
-            end case;
         elsif std_match(cond, "00110--------0010") then
             -- MOV.L @Rm, Rn [6nm2]
             -- (Rm)-> Rn
-            case op.addr(3 downto 0) is
-                when x"0" =>
                     -- Y = Rm
                     ex.ybus_sel <= SEL_REG;
                     ex.regnum_y <= '0' & op.code(7 downto 4);
@@ -2612,9 +2185,6 @@ begin
                     dispatch <= '1';
                     id.if_issue <= '1';
 
-                when others =>
-
-            end case;
         elsif std_match(cond, "00000--------1111") then
             -- MAC.L @Rm+, @Rn+ [0nmF]
             -- Signed, (Rn) x (Rm) + MAC -> MAC
@@ -2847,8 +2417,6 @@ begin
         elsif std_match(cond, "00010--------0100") then
             -- MOV.B Rm,@-Rn [2nm4]
             -- Rn - 1 -> Rn, Rm -> (Rn)
-            case op.addr(3 downto 0) is
-                when x"0" =>
                     -- X = Rn
                     ex.xbus_sel <= SEL_REG;
                     ex.regnum_x <= '0' & op.code(11 downto 8);
@@ -2873,14 +2441,9 @@ begin
                     dispatch <= '1';
                     id.if_issue <= '1';
 
-                when others =>
-
-            end case;
         elsif std_match(cond, "00010--------0101") then
             -- MOV.W Rm,@-Rn [2nm5]
             -- Rn - 2 -> Rn, Rm -> (Rn)
-            case op.addr(3 downto 0) is
-                when x"0" =>
                     -- X = Rn
                     ex.xbus_sel <= SEL_REG;
                     ex.regnum_x <= '0' & op.code(11 downto 8);
@@ -2905,14 +2468,9 @@ begin
                     dispatch <= '1';
                     id.if_issue <= '1';
 
-                when others =>
-
-            end case;
         elsif std_match(cond, "00010--------0110") then
             -- MOV.L Rm,@-Rn [2nm6]
             -- Rn - 4 -> Rn, Rm -> (Rn)
-            case op.addr(3 downto 0) is
-                when x"0" =>
                     -- X = Rn
                     ex.xbus_sel <= SEL_REG;
                     ex.regnum_x <= '0' & op.code(11 downto 8);
@@ -2937,14 +2495,9 @@ begin
                     dispatch <= '1';
                     id.if_issue <= '1';
 
-                when others =>
-
-            end case;
         elsif std_match(cond, "00000--------0100") then
             -- MOV.B Rm, @(R0, Rn) [0nm4]
             -- Rm->(R0 +Rn)
-            case op.addr(3 downto 0) is
-                when x"0" =>
                     -- X = Rn
                     ex.xbus_sel <= SEL_REG;
                     ex.regnum_x <= '0' & op.code(11 downto 8);
@@ -2965,14 +2518,9 @@ begin
                     dispatch <= '1';
                     id.if_issue <= '1';
 
-                when others =>
-
-            end case;
         elsif std_match(cond, "00000--------0101") then
             -- MOV.W Rm, @(R0, Rn) [0nm5]
             -- Rm->(R0 +Rn)
-            case op.addr(3 downto 0) is
-                when x"0" =>
                     -- X = Rn
                     ex.xbus_sel <= SEL_REG;
                     ex.regnum_x <= '0' & op.code(11 downto 8);
@@ -2993,14 +2541,9 @@ begin
                     dispatch <= '1';
                     id.if_issue <= '1';
 
-                when others =>
-
-            end case;
         elsif std_match(cond, "00000--------0110") then
             -- MOV.L Rm, @(R0, Rn) [0nm6]
             -- Rm->(R0 +Rn)
-            case op.addr(3 downto 0) is
-                when x"0" =>
                     -- X = Rn
                     ex.xbus_sel <= SEL_REG;
                     ex.regnum_x <= '0' & op.code(11 downto 8);
@@ -3021,14 +2564,9 @@ begin
                     dispatch <= '1';
                     id.if_issue <= '1';
 
-                when others =>
-
-            end case;
         elsif std_match(cond, "00000--------1100") then
             -- MOV.B @(R0, Rm), Rn [0nmC]
             -- (R0 +Rm)->sign extension -> Rn
-            case op.addr(3 downto 0) is
-                when x"0" =>
                     -- X = Rm
                     ex.xbus_sel <= SEL_REG;
                     ex.regnum_x <= '0' & op.code(7 downto 4);
@@ -3048,14 +2586,9 @@ begin
                     dispatch <= '1';
                     id.if_issue <= '1';
 
-                when others =>
-
-            end case;
         elsif std_match(cond, "00000--------1101") then
             -- MOV.W @(R0, Rm), Rn [0nmD]
             -- (R0 +Rm)->sign extension -> Rn
-            case op.addr(3 downto 0) is
-                when x"0" =>
                     -- X = Rm
                     ex.xbus_sel <= SEL_REG;
                     ex.regnum_x <= '0' & op.code(7 downto 4);
@@ -3075,14 +2608,9 @@ begin
                     dispatch <= '1';
                     id.if_issue <= '1';
 
-                when others =>
-
-            end case;
         elsif std_match(cond, "00000--------1110") then
             -- MOV.L @(R0, Rm), Rn [0nmE]
             -- (R0 +Rm)-> Rn
-            case op.addr(3 downto 0) is
-                when x"0" =>
                     -- X = Rm
                     ex.xbus_sel <= SEL_REG;
                     ex.regnum_x <= '0' & op.code(7 downto 4);
@@ -3102,14 +2630,9 @@ begin
                     dispatch <= '1';
                     id.if_issue <= '1';
 
-                when others =>
-
-            end case;
         elsif std_match(cond, "010000100--------") then
             -- MOV.B @(disp, Rm), R0 [84md]
             -- (disp + Rm) -> sign extension -> R0
-            case op.addr(3 downto 0) is
-                when x"0" =>
                     -- X = Rm
                     ex.xbus_sel <= SEL_REG;
                     ex.regnum_x <= '0' & op.code(7 downto 4);
@@ -3130,14 +2653,9 @@ begin
                     dispatch <= '1';
                     id.if_issue <= '1';
 
-                when others =>
-
-            end case;
         elsif std_match(cond, "010000101--------") then
             -- MOV.W @(disp, Rm), R0 [85md]
             -- (disp x2 +Rm)-> sign extension -> R0
-            case op.addr(3 downto 0) is
-                when x"0" =>
                     -- X = Rm
                     ex.xbus_sel <= SEL_REG;
                     ex.regnum_x <= '0' & op.code(7 downto 4);
@@ -3158,14 +2676,9 @@ begin
                     dispatch <= '1';
                     id.if_issue <= '1';
 
-                when others =>
-
-            end case;
         elsif std_match(cond, "010000000--------") then
             -- MOV.B R0, @(disp, Rn) [80nd]
             -- R0 -> (disp + Rn)
-            case op.addr(3 downto 0) is
-                when x"0" =>
                     -- X = Rn
                     ex.xbus_sel <= SEL_REG;
                     ex.regnum_x <= '0' & op.code(7 downto 4);
@@ -3187,14 +2700,9 @@ begin
                     dispatch <= '1';
                     id.if_issue <= '1';
 
-                when others =>
-
-            end case;
         elsif std_match(cond, "010000001--------") then
             -- MOV.W R0, @(disp, Rn) [81nd]
             -- R0 -> (disp x 2+ Rn)
-            case op.addr(3 downto 0) is
-                when x"0" =>
                     -- X = Rn
                     ex.xbus_sel <= SEL_REG;
                     ex.regnum_x <= '0' & op.code(7 downto 4);
@@ -3216,14 +2724,9 @@ begin
                     dispatch <= '1';
                     id.if_issue <= '1';
 
-                when others =>
-
-            end case;
         elsif std_match(cond, "00001------------") then
             -- MOV.L Rm, @(disp, Rn) [1nmd]
             -- Rm -> (disp x 4 + Rn)
-            case op.addr(3 downto 0) is
-                when x"0" =>
                     -- X = Rn
                     ex.xbus_sel <= SEL_REG;
                     ex.regnum_x <= '0' & op.code(11 downto 8);
@@ -3245,14 +2748,9 @@ begin
                     dispatch <= '1';
                     id.if_issue <= '1';
 
-                when others =>
-
-            end case;
         elsif std_match(cond, "00101------------") then
             -- MOV.L @(disp, Rm), Rn [5nmd]
             -- (disp x 4+ Rm) -> Rn
-            case op.addr(3 downto 0) is
-                when x"0" =>
                     -- X = Rm
                     ex.xbus_sel <= SEL_REG;
                     ex.regnum_x <= '0' & op.code(7 downto 4);
@@ -3273,14 +2771,9 @@ begin
                     dispatch <= '1';
                     id.if_issue <= '1';
 
-                when others =>
-
-            end case;
         elsif std_match(cond, "011000000--------") then
             -- MOV.B R0, @(disp, GBR) [C0dd]
             -- R0-> (disp + GBR)
-            case op.addr(3 downto 0) is
-                when x"0" =>
                     -- X = GBR
                     ex.xbus_sel <= SEL_REG;
                     ex.regnum_x <= "10000";
@@ -3302,14 +2795,9 @@ begin
                     dispatch <= '1';
                     id.if_issue <= '1';
 
-                when others =>
-
-            end case;
         elsif std_match(cond, "011000001--------") then
             -- MOV.W R0, @(disp, GBR) [C1dd]
             -- R0-> (disp x2 + GBR)
-            case op.addr(3 downto 0) is
-                when x"0" =>
                     -- X = GBR
                     ex.xbus_sel <= SEL_REG;
                     ex.regnum_x <= "10000";
@@ -3331,14 +2819,9 @@ begin
                     dispatch <= '1';
                     id.if_issue <= '1';
 
-                when others =>
-
-            end case;
         elsif std_match(cond, "011000010--------") then
             -- MOV.L R0, @(disp, GBR) [C2dd]
             -- R0-> (disp x4 + GBR)
-            case op.addr(3 downto 0) is
-                when x"0" =>
                     -- X = GBR
                     ex.xbus_sel <= SEL_REG;
                     ex.regnum_x <= "10000";
@@ -3360,14 +2843,9 @@ begin
                     dispatch <= '1';
                     id.if_issue <= '1';
 
-                when others =>
-
-            end case;
         elsif std_match(cond, "011000100--------") then
             -- MOV.B @(disp, GBR), R0 [C4dd]
             -- (disp + GBR) -> sign extension -> R0
-            case op.addr(3 downto 0) is
-                when x"0" =>
                     -- X = GBR
                     ex.xbus_sel <= SEL_REG;
                     ex.regnum_x <= "10000";
@@ -3388,14 +2866,9 @@ begin
                     dispatch <= '1';
                     id.if_issue <= '1';
 
-                when others =>
-
-            end case;
         elsif std_match(cond, "011000101--------") then
             -- MOV.W @(disp, GBR), R0 [C5dd]
             -- (disp x2 + GBR) -> sign extension -> R0
-            case op.addr(3 downto 0) is
-                when x"0" =>
                     -- X = GBR
                     ex.xbus_sel <= SEL_REG;
                     ex.regnum_x <= "10000";
@@ -3416,14 +2889,9 @@ begin
                     dispatch <= '1';
                     id.if_issue <= '1';
 
-                when others =>
-
-            end case;
         elsif std_match(cond, "011000110--------") then
             -- MOV.L @(disp, GBR), R0 [C6dd]
             -- (disp  x4+ GBR) -> sign extension -> R0
-            case op.addr(3 downto 0) is
-                when x"0" =>
                     -- X = GBR
                     ex.xbus_sel <= SEL_REG;
                     ex.regnum_x <= "10000";
@@ -3444,14 +2912,9 @@ begin
                     dispatch <= '1';
                     id.if_issue <= '1';
 
-                when others =>
-
-            end case;
         elsif std_match(cond, "011000111--------") then
             -- MOVA @(disp, PC), R0 [C7dd]
             -- disp x 4 + PC -> R0
-            case op.addr(3 downto 0) is
-                when x"0" =>
                     -- X = PC
                     ex.xbus_sel <= SEL_PC;
                     -- Y = UCONST * 4
@@ -3468,9 +2931,6 @@ begin
                     dispatch <= '1';
                     id.if_issue <= '1';
 
-                when others =>
-
-            end case;
         elsif std_match(cond, "010001011--------") then
             -- BF label [8Bdd]
             -- When T=0, disp x2+PC-> PC; When T = 1, nop
@@ -3648,8 +3108,6 @@ begin
         elsif std_match(cond, "01001------------") then
             -- MOV.W @(disp, PC), Rn [9ndd]
             -- (disp x 2 + PC) -> sign extension -> Rn
-            case op.addr(3 downto 0) is
-                when x"0" =>
                     -- X = PC
                     ex.xbus_sel <= SEL_PC;
                     -- Y = UCONST * 2
@@ -3670,14 +3128,9 @@ begin
                     dispatch <= '1';
                     id.if_issue <= '1';
 
-                when others =>
-
-            end case;
         elsif std_match(cond, "01101------------") then
             -- MOV.L @(disp, PC), Rn [Dndd]
             -- (disp x 4 + PC) -> Rn
-            case op.addr(3 downto 0) is
-                when x"0" =>
                     -- X = PC
                     ex.xbus_sel <= SEL_PC;
                     -- Y = UCONST * 4
@@ -3699,9 +3152,6 @@ begin
                     dispatch <= '1';
                     id.if_issue <= '1';
 
-                when others =>
-
-            end case;
         elsif std_match(cond, "011001101--------") then
             -- AND.B #imm, @(R0, GBR) [CDii]
             -- (R0 + GBR) & imm -> (R0 + GBR)
@@ -3932,8 +3382,6 @@ begin
         elsif std_match(cond, "011001001--------") then
             -- AND #imm, R0 [C9ii]
             -- R0 & imm->R0
-            case op.addr(3 downto 0) is
-                when x"0" =>
                     -- X = R0
                     ex.xbus_sel <= SEL_REG;
                     ex.regnum_x <= "00000";
@@ -3950,14 +3398,9 @@ begin
                     dispatch <= '1';
                     id.if_issue <= '1';
 
-                when others =>
-
-            end case;
         elsif std_match(cond, "010001000--------") then
             -- CMP /EQ #imm, R0 [88ii]
             -- When R0=imm,1->T
-            case op.addr(3 downto 0) is
-                when x"0" =>
                     -- X = R0
                     ex.xbus_sel <= SEL_REG;
                     ex.regnum_x <= "00000";
@@ -3971,14 +3414,9 @@ begin
                     dispatch <= '1';
                     id.if_issue <= '1';
 
-                when others =>
-
-            end case;
         elsif std_match(cond, "011001011--------") then
             -- OR #imm, R0 [CBii]
             -- R0 | imm->R0
-            case op.addr(3 downto 0) is
-                when x"0" =>
                     -- X = R0
                     ex.xbus_sel <= SEL_REG;
                     ex.regnum_x <= "00000";
@@ -3995,14 +3433,9 @@ begin
                     dispatch <= '1';
                     id.if_issue <= '1';
 
-                when others =>
-
-            end case;
         elsif std_match(cond, "011001000--------") then
             -- TST #imm, R0 [C8ii]
             -- R0 & imm, when result is 0, 1 -> T
-            case op.addr(3 downto 0) is
-                when x"0" =>
                     -- X = R0
                     ex.xbus_sel <= SEL_REG;
                     ex.regnum_x <= "00000";
@@ -4016,14 +3449,9 @@ begin
                     dispatch <= '1';
                     id.if_issue <= '1';
 
-                when others =>
-
-            end case;
         elsif std_match(cond, "011001010--------") then
             -- XOR #imm, R0 [CAii]
             -- R0 ^ imm->R0
-            case op.addr(3 downto 0) is
-                when x"0" =>
                     -- X = R0
                     ex.xbus_sel <= SEL_REG;
                     ex.regnum_x <= "00000";
@@ -4040,9 +3468,6 @@ begin
                     dispatch <= '1';
                     id.if_issue <= '1';
 
-                when others =>
-
-            end case;
         elsif std_match(cond, "011000011--------") then
             -- TRAPA #imm [C3ii]
             -- PC/SR -> Stack area, (imm x 4 + VBR) -> PC
@@ -4127,8 +3552,6 @@ begin
         elsif std_match(cond, "00111------------") then
             -- ADD #imm, Rn [7nii]
             -- Rn + imm -> Rn
-            case op.addr(3 downto 0) is
-                when x"0" =>
                     -- X = Rn
                     ex.xbus_sel <= SEL_REG;
                     ex.regnum_x <= '0' & op.code(11 downto 8);
@@ -4145,14 +3568,9 @@ begin
                     dispatch <= '1';
                     id.if_issue <= '1';
 
-                when others =>
-
-            end case;
         elsif std_match(cond, "01110------------") then
             -- MOV #imm, Rn [Enii]
             -- imm -> sign extension -> Rn
-            case op.addr(3 downto 0) is
-                when x"0" =>
                     -- Y = CONST
                     ex.ybus_sel <= SEL_IMM;
                     ex_stall.zbus_sel <= SEL_YBUS;
@@ -4164,9 +3582,6 @@ begin
                     dispatch <= '1';
                     id.if_issue <= '1';
 
-                when others =>
-
-            end case;
         elsif std_match(cond, "1-----111--------") then
             -- General Illegal [-(-111)dd]
             -- 

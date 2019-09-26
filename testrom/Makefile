@@ -21,8 +21,8 @@ LDFLAGS = -T startup/sh32.x -Map main.map
 LIBGCC = $(shell $(CC) -print-libgcc-file-name)
 
 # CFLAGS := -mj2 -g -Os -Wall
-#CFLAGS := -DNO_DDR -DNO_TESTS -mj2 -g -Os -Wall
-CFLAGS := -DNO_DDR -mj2 -g -Os -Wall
+CFLAGS := -DNO_DDR -DNO_TESTS -mj2 -g -Os -Wall
+#CFLAGS := -DNO_DDR -mj2 -g -Os -Wall
 
 DDR ?= ddr16
 ifeq ($(DDR), lpddr)
