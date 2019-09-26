@@ -14,6 +14,55 @@ use work.decode_pack.all;
 use work.cpu2j0_components_pack.all;
 use work.mult_pkg.all;
 package body decode_pack is
+
+    function isa_fmt (code : std_logic_vector(15 downto 0)) return isa_type_t is
+        variable ret : isa_type_t := ( (others => '0'), (others => '0'), (others => '0'), 
+                                       NX, LONG,
+                                       (others => '0'), (others => '0'), (others => '0'));
+    begin
+        ret.ln  := code(15 downto 12);
+        if   (ret.ln = "0000" and code(2) = '1') or (ret.ln(3) = '0' and ret.ln(1) = '1') then
+            ret.fmt := NMX;
+        elsif ret.ln = "0100" and code(3 downto 2) = "11" and code (1 downto 0) /= "10" then
+            ret.fmt := NM;
+        elsif ret.ln = "0001" or ret.ln = "0101" then
+            ret.fmt := NM4;
+        elsif ret.ln = "0111" or ret.ln = "1001" or ret.ln = "1101" or ret.ln = "1110" then
+            ret.fmt := N8;
+        elsif ret.ln(3 downto 1) = "101" then
+            ret.fmt := I12;
+        elsif ret.ln = "1000" and code(11) = '0' then
+            ret.fmt := NX4;
+        elsif (ret.ln = "1000" and code(11) = '1') or ret.ln = "1100" then
+            ret.fmt := X8;
+        elsif (ret.ln = "0000" and code (3 downto 0) = "0011") or (ret.ln = "0100" and code(1) = '1') then
+            ret.fmt := MX;
+        end if;
+
+        ret.rm  := code(11 downto 8);
+        ret.rn  := code(7 downto 4);
+        if code(15 downto 10) = "100000" then ret.rm  := code(7  downto 4); end if; 
+        if ret.fmt = MX                  then ret.rn  := code(11 downto 8); end if;
+
+        if    ret.fmt = I12                  then ret.imm :=         code(11 downto 0);
+        elsif ret.fmt = N8  or ret.fmt = X8  then ret.imm := x"0"  & code( 7 downto 0);
+        elsif ret.fmt = NM4 or ret.fmt = NX4 then ret.imm := x"00" & code( 3 downto 0); end if;
+
+
+        if    ret.fmt = NX  or ret.fmt = MX then ret.col := code( 5 downto 4); 
+        elsif ret.fmt = NMX                 then ret.col := code( 1 downto 0);
+        elsif ret.fmt = NX4 or ret.fmt = X8 then ret.col := code( 9 downto 8); end if; 
+
+        if    ret.fmt = NX  or ret.fmt = MX then ret.op  := code( 3 downto 0);
+        elsif ret.fmt = NMX                 then ret.op  := "00" & code( 3 downto  2);
+        elsif ret.fmt = NX4 or ret.fmt = X8 then ret.op  := "00" & code(11 downto 10); end if;
+
+        if    ret.col = "00" then ret.sz := BYTE;
+        elsif ret.col = "01" then ret.sz := WORD; end if;
+
+        return ret;
+    end function;
+
     function predecode_rom_addr (code : std_logic_vector(15 downto 0)) return std_logic_vector is
         variable addr : std_logic_vector(7 downto 0);
     begin

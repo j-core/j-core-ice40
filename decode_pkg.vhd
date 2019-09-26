@@ -13,6 +13,22 @@ use work.cpu2j0_components_pack.all;
 use work.mult_pkg.all;
 use work.cpu2j0_pack.all;
 package decode_pack is
+
+    -- Here beginnith the hand written instruction classification RTL
+    type isa_fmt_t is (NX, MX, NM, NMX, NM4, N8, NX4, X8, I12);
+
+    type isa_type_t is record
+        ln   : std_logic_vector(3 downto 0);
+        col  : std_logic_vector(1 downto 0);
+        op   : std_logic_vector(3 downto 0);
+        fmt  : isa_fmt_t;
+        sz   : mem_size_t;
+        rm   : std_logic_vector(3 downto 0);
+        rn   : std_logic_vector(3 downto 0);
+        imm  : std_logic_vector(11 downto 0);
+    end record;
+    function isa_fmt (code : std_logic_vector(15 downto 0)) return isa_type_t;
+
     type aluinx_sel_t is (SEL_XBUS, SEL_FC, SEL_ROTCL, SEL_ZERO);
     type aluiny_sel_t is (SEL_YBUS, SEL_IMM, SEL_R0);
     type cpu_decode_type_t is (SIMPLE, REVERSE, MICROCODE);

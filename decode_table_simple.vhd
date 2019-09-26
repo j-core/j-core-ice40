@@ -74,8 +74,10 @@ begin
             '1' when WB_BUSY;
     process(t_bcc, op)
         variable cond : std_logic_vector(16 downto 0);
+        variable fmt : isa_type_t;
     begin
         cond := std_logic_vector(TO_UNSIGNED(instruction_plane_t'pos(op.plane), 1)) & op.code;
+        fmt  := isa_fmt(op.code);
         -- zero outputs by default
         ilevel_cap <= '0';
         mac_stall_sense <= '0';
@@ -108,8 +110,37 @@ begin
         ex.arith_sr_func <= ZERO;
         imm_enum <= IMM_ZERO;
         mac_busy <= NOT_BUSY;
+
+        if fmt.fmt = NMX and fmt.ln = "0000" and fmt.op(0) = '1' and cond(1 downto 0) /= "11" then
+            -- MOV.BWL Rm, @(R0, Rn) [0nm4]
+            -- MOV.BWL @(R0, Rm), Rn [0nmC]
+            -- (R0 +Rm)->sign extension -> Rn
+                    -- X = Rm
+                    ex.xbus_sel <= SEL_REG;
+                    if cond(3) = '1' then ex.regnum_x <= '0' & fmt.rn; else
+                                          ex.regnum_x <= '0' & fmt.rm; end if;
+                    -- Y = Rm
+                    ex.ybus_sel <= SEL_REG;
+                    ex.regnum_y <= '0' & fmt.rn;
+                    -- Z = X + R0
+                    ex.aluiny_sel <= SEL_R0;
+                    ex_stall.zbus_sel <= SEL_ARITH;
+                    ex.arith_func <= ADD;
+                    -- W = MEM[Z] byte
+                    ex_stall.ma_issue <= '1';
+                    ex.ma_wr <= not cond(3);
+                    ex_stall.mem_addr_sel <= SEL_ZBUS;
+                    ex_stall.mem_wdata_sel <= SEL_YBUS;
+                    ex.mem_size <= fmt.sz;
+                    -- Rn = W
+                    if cond(3) = '1' then wb_stall.wrreg_w <= '1'; end if;
+                    wb.regnum_w <= '0' & fmt.rm;
+                    id.incpc <= '1';
+                    dispatch <= '1';
+                    id.if_issue <= '1';
+
         -- set control signals for each opcode
-        if std_match(cond, "00000000000001000") then
+        elsif std_match(cond, "00000000000001000") then
             -- CLRT [0008]
             -- 0 -> T
                     ex_stall.sr_sel <= SEL_SET_T;
@@ -2495,140 +2526,6 @@ begin
                     dispatch <= '1';
                     id.if_issue <= '1';
 
-        elsif std_match(cond, "00000--------0100") then
-            -- MOV.B Rm, @(R0, Rn) [0nm4]
-            -- Rm->(R0 +Rn)
-                    -- X = Rn
-                    ex.xbus_sel <= SEL_REG;
-                    ex.regnum_x <= '0' & op.code(11 downto 8);
-                    -- Y = Rm
-                    ex.ybus_sel <= SEL_REG;
-                    ex.regnum_y <= '0' & op.code(7 downto 4);
-                    -- Z = X + R0
-                    ex.aluiny_sel <= SEL_R0;
-                    ex_stall.zbus_sel <= SEL_ARITH;
-                    ex.arith_func <= ADD;
-                    -- MEM[Z] = Y byte
-                    ex_stall.ma_issue <= '1';
-                    ex.ma_wr <= '1';
-                    ex_stall.mem_addr_sel <= SEL_ZBUS;
-                    ex_stall.mem_wdata_sel <= SEL_YBUS;
-                    ex.mem_size <= BYTE;
-                    id.incpc <= '1';
-                    dispatch <= '1';
-                    id.if_issue <= '1';
-
-        elsif std_match(cond, "00000--------0101") then
-            -- MOV.W Rm, @(R0, Rn) [0nm5]
-            -- Rm->(R0 +Rn)
-                    -- X = Rn
-                    ex.xbus_sel <= SEL_REG;
-                    ex.regnum_x <= '0' & op.code(11 downto 8);
-                    -- Y = Rm
-                    ex.ybus_sel <= SEL_REG;
-                    ex.regnum_y <= '0' & op.code(7 downto 4);
-                    -- Z = X + R0
-                    ex.aluiny_sel <= SEL_R0;
-                    ex_stall.zbus_sel <= SEL_ARITH;
-                    ex.arith_func <= ADD;
-                    -- MEM[Z] = Y word
-                    ex_stall.ma_issue <= '1';
-                    ex.ma_wr <= '1';
-                    ex_stall.mem_addr_sel <= SEL_ZBUS;
-                    ex_stall.mem_wdata_sel <= SEL_YBUS;
-                    ex.mem_size <= WORD;
-                    id.incpc <= '1';
-                    dispatch <= '1';
-                    id.if_issue <= '1';
-
-        elsif std_match(cond, "00000--------0110") then
-            -- MOV.L Rm, @(R0, Rn) [0nm6]
-            -- Rm->(R0 +Rn)
-                    -- X = Rn
-                    ex.xbus_sel <= SEL_REG;
-                    ex.regnum_x <= '0' & op.code(11 downto 8);
-                    -- Y = Rm
-                    ex.ybus_sel <= SEL_REG;
-                    ex.regnum_y <= '0' & op.code(7 downto 4);
-                    -- Z = X + R0
-                    ex.aluiny_sel <= SEL_R0;
-                    ex_stall.zbus_sel <= SEL_ARITH;
-                    ex.arith_func <= ADD;
-                    -- MEM[Z] = Y long
-                    ex_stall.ma_issue <= '1';
-                    ex.ma_wr <= '1';
-                    ex_stall.mem_addr_sel <= SEL_ZBUS;
-                    ex_stall.mem_wdata_sel <= SEL_YBUS;
-                    ex.mem_size <= LONG;
-                    id.incpc <= '1';
-                    dispatch <= '1';
-                    id.if_issue <= '1';
-
-        elsif std_match(cond, "00000--------1100") then
-            -- MOV.B @(R0, Rm), Rn [0nmC]
-            -- (R0 +Rm)->sign extension -> Rn
-                    -- X = Rm
-                    ex.xbus_sel <= SEL_REG;
-                    ex.regnum_x <= '0' & op.code(7 downto 4);
-                    -- Z = X + R0
-                    ex.aluiny_sel <= SEL_R0;
-                    ex_stall.zbus_sel <= SEL_ARITH;
-                    ex.arith_func <= ADD;
-                    -- W = MEM[Z] byte
-                    ex_stall.ma_issue <= '1';
-                    ex.ma_wr <= '0';
-                    ex_stall.mem_addr_sel <= SEL_ZBUS;
-                    ex.mem_size <= BYTE;
-                    -- Rn = W
-                    wb_stall.wrreg_w <= '1';
-                    wb.regnum_w <= '0' & op.code(11 downto 8);
-                    id.incpc <= '1';
-                    dispatch <= '1';
-                    id.if_issue <= '1';
-
-        elsif std_match(cond, "00000--------1101") then
-            -- MOV.W @(R0, Rm), Rn [0nmD]
-            -- (R0 +Rm)->sign extension -> Rn
-                    -- X = Rm
-                    ex.xbus_sel <= SEL_REG;
-                    ex.regnum_x <= '0' & op.code(7 downto 4);
-                    -- Z = X + R0
-                    ex.aluiny_sel <= SEL_R0;
-                    ex_stall.zbus_sel <= SEL_ARITH;
-                    ex.arith_func <= ADD;
-                    -- W = MEM[Z] word
-                    ex_stall.ma_issue <= '1';
-                    ex.ma_wr <= '0';
-                    ex_stall.mem_addr_sel <= SEL_ZBUS;
-                    ex.mem_size <= WORD;
-                    -- Rn = W
-                    wb_stall.wrreg_w <= '1';
-                    wb.regnum_w <= '0' & op.code(11 downto 8);
-                    id.incpc <= '1';
-                    dispatch <= '1';
-                    id.if_issue <= '1';
-
-        elsif std_match(cond, "00000--------1110") then
-            -- MOV.L @(R0, Rm), Rn [0nmE]
-            -- (R0 +Rm)-> Rn
-                    -- X = Rm
-                    ex.xbus_sel <= SEL_REG;
-                    ex.regnum_x <= '0' & op.code(7 downto 4);
-                    -- Z = X + R0
-                    ex.aluiny_sel <= SEL_R0;
-                    ex_stall.zbus_sel <= SEL_ARITH;
-                    ex.arith_func <= ADD;
-                    -- W = MEM[Z] long
-                    ex_stall.ma_issue <= '1';
-                    ex.ma_wr <= '0';
-                    ex_stall.mem_addr_sel <= SEL_ZBUS;
-                    ex.mem_size <= LONG;
-                    -- Rn = W
-                    wb_stall.wrreg_w <= '1';
-                    wb.regnum_w <= '0' & op.code(11 downto 8);
-                    id.incpc <= '1';
-                    dispatch <= '1';
-                    id.if_issue <= '1';
 
         elsif std_match(cond, "010000100--------") then
             -- MOV.B @(disp, Rm), R0 [84md]
