@@ -39,10 +39,10 @@ package body decode_pack is
             ret.fmt := MX;
         end if;
 
-        ret.rm  := code(11 downto 8);
-        ret.rn  := code(7 downto 4);
-        if code(15 downto 10) = "100000" then ret.rm  := code(7  downto 4); end if; 
-        if ret.fmt = MX                  then ret.rn  := code(11 downto 8); end if;
+        ret.rn  := code(11 downto 8);
+        ret.rm  := code(7 downto 4);
+        if code(15 downto 10) = "100000" then ret.rm  := code(11 downto 8); end if; 
+        if ret.fmt = MX                  then ret.rn  := code( 7 downto 4); end if;
 
         if    ret.fmt = I12                  then ret.imm :=         code(11 downto 0);
         elsif ret.fmt = N8  or ret.fmt = X8  then ret.imm := x"0"  & code( 7 downto 0);

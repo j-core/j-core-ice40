@@ -7,7 +7,7 @@ use ieee.numeric_std.all;
 entity simple_ram is
   generic (
     -- 32-bit read/write port.  ADDR_WIDTH is in bytes, not words.
-    ADDR_WIDTH : integer := 13 -- default 32k
+    ADDR_WIDTH : integer := 15 -- default 32k
     );
   port (
     clk : in std_logic;
