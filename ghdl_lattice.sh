@@ -16,5 +16,9 @@ ghdl -a cpu_lattice.vhd lattice_tb.vhd
 
 ghdl -e lattice_tb
 
-./lattice_tb --stop-time=3000ns --wave=out.ghw --ieee-asserts=disable-at-0  --activity=all > /dev/null
-./lattice_tb --stop-time=2ms --ieee-asserts=disable-at-0
+# the ghdl "mcode" version is a bytecode interpreter run via ghdl -r,
+# the llvm backend creates standalone binaries runnable as ./lattice_tb
+# it's otherwise the same command line arguments
+
+ghdl -r lattice_tb --stop-time=3000ns --wave=out.ghw --ieee-asserts=disable-at-0  --activity=all > /dev/null
+ghdl -r lattice_tb --stop-time=2ms --ieee-asserts=disable-at-0
