@@ -75,9 +75,13 @@ begin
     process(t_bcc, op)
         variable cond : std_logic_vector(16 downto 0);
         variable fmt : isa_type_t;
+        variable rm : std_logic_vector(4 downto 0);
+        variable rn : std_logic_vector(4 downto 0);
     begin
         cond := std_logic_vector(TO_UNSIGNED(instruction_plane_t'pos(op.plane), 1)) & op.code;
         fmt  := isa_fmt(op.code);
+        rn := '0' & cond(11 downto 8);
+        rm := '0' & cond(7 downto 4);
         -- Set default values for outputs
         ilevel_cap <= '0';
         mac_stall_sense <= '0';
@@ -97,11 +101,11 @@ begin
         ex.aluiny_sel <= SEL_YBUS;
         ex.arith_ci_en <= '0';
         ex.xbus_sel <= SEL_REG;
-        wb.regnum_w <= '0' & cond(11 downto 8);
-        ex.regnum_x <= '0' & cond(11 downto 8);
+        wb.regnum_w <= rn;
+        ex.regnum_x <= rn;
         ex.mem_size <= LONG;
-        ex.regnum_y <= '0' & cond(7 downto 4);
-        ex.regnum_z <= '0' & cond(11 downto 8);
+        ex.regnum_y <= rm;
+        ex.regnum_z <= rn;
         ex.ma_wr <= '0';
         ex.logic_sr_func <= ZERO;
         ex.logic_func <= LOGIC_XOR;
@@ -124,11 +128,11 @@ begin
             -- (R0 +Rm)->sign extension -> Rn
                     -- X = Rm
               --    ex.xbus_sel <= SEL_REG;
-                    if (cond(3) or cond(14)) = '1' then ex.regnum_x <= '0' & fmt.rm; end if;
-              --                                        ex.regnum_x <= '0' & fmt.rn; end if;
+                    if (cond(3) or cond(14)) = '1' then ex.regnum_x <= rm; end if;
+              --                                        ex.regnum_x <= rn; end if;
                     -- Y = Rm
               --    ex.ybus_sel <= SEL_REG;
-                    ex.regnum_y <= '0' & fmt.rm;
+              --    ex.regnum_y <= rm;
                     -- Z = X + R0
                     if cond(13) = '1' then ex.aluiny_sel <= SEL_IMM; ex.arith_func <= SUB;
                     else                   ex.aluiny_sel <= SEL_R0;  end if;
@@ -140,15 +144,17 @@ begin
                     -- W = MEM[Z] or MEM[X] 
                     ex_stall.ma_issue <= '1';
                     ex.ma_wr <= not (cond(3) or cond(14));
-                    if cond(13) = '0' or (cond(13) and cond(2)) = '1' then ex_stall.mem_addr_sel <= SEL_ZBUS; else
-                                           ex_stall.mem_addr_sel <= SEL_XBUS; end if;
+                    if cond(13) = '1' and cond(2) = '0' then ex_stall.mem_addr_sel <= SEL_XBUS;
+              --    else ex_stall.mem_addr_sel <= SEL_ZBUS; end if;
+                    end if;
               --    ex_stall.mem_wdata_sel <= SEL_YBUS;
                     ex.mem_size <= fmt.sz;
                     -- Rn = W
                     if    (cond(2) and cond(13)) = '1' then ex_stall.wrreg_z <= '1';
                     elsif (cond(3) or cond(14))  = '1' then wb_stall.wrreg_w <= '1'; end if;
-                    ex.regnum_z <= '0' & fmt.rn;
-                    wb.regnum_w <= '0' & fmt.rn;
+              --    ex.regnum_z <= rn;
+              --    wb.regnum_w <= rn;
+
                     id.incpc <= '1';
                     dispatch <= '1';
                     id.if_issue <= '1';
@@ -163,19 +169,19 @@ begin
                 when x"0" =>
                     -- X = Rm
               ---   ex.xbus_sel <= SEL_REG;
-                    ex.regnum_x <= '0' & op.code(7 downto 4);
+                    ex.regnum_x <= rm;
                     -- Z = X + 1
                     ex.aluiny_sel <= SEL_IMM;
               --    ex_stall.zbus_sel <= SEL_ARITH;
               --    ex.arith_func <= ADD;
                     -- Rm = Z
                     ex_stall.wrreg_z <= '1';
-                    ex.regnum_z <= '0' & op.code(7 downto 4);
+                    ex.regnum_z <= rm;
 
                 when x"1" =>
                     -- X = Rm
               --    ex.xbus_sel <= SEL_REG;
-                    ex.regnum_x <= '0' & op.code(7 downto 4);
+                    ex.regnum_x <= rm;
                     -- Z = X - 1
                     ex.aluiny_sel <= SEL_IMM;
               --    ex_stall.zbus_sel <= SEL_ARITH;
@@ -187,7 +193,8 @@ begin
                     ex.mem_size <= fmt.sz;
                     -- Rn = W
                     wb_stall.wrreg_w <= '1';
-              --    wb.regnum_w <= '0' & op.code(11 downto 8);
+              --    wb.regnum_w <= rn;
+
                     id.incpc <= '1';
                     dispatch <= '1';
                     id.if_issue <= '1';
@@ -228,6 +235,7 @@ begin
               --    ex_stall.mem_addr_sel <= SEL_ZBUS;
               --    ex_stall.mem_wdata_sel <= SEL_YBUS;
                     ex.mem_size <= fmt.sz;
+
                     id.incpc <= '1';
                     dispatch <= '1';
                     id.if_issue <= '1';
@@ -251,7 +259,8 @@ begin
               --    ex.mem_size <= LONG;
                     -- Rn = W
                     wb_stall.wrreg_w <= '1';
-              --    wb.regnum_w <= '0' & op.code(11 downto 8);
+              --    wb.regnum_w <= rn;
+
                     id.incpc <= '1';
                     dispatch <= '1';
                     id.if_issue <= '1';
@@ -262,6 +271,7 @@ begin
             -- 0 -> T
                     ex_stall.sr_sel <= SEL_SET_T;
                     ex_stall.t_sel <= SEL_CLEAR;
+
                     id.incpc <= '1';
                     dispatch <= '1';
                     id.if_issue <= '1';
@@ -283,6 +293,7 @@ begin
                     ex_stall.wrmacl <= '1';
                     ex_stall.wrmach <= '1';
                     mac_stall_sense <= '1';
+
                     id.incpc <= '1';
                     dispatch <= '1';
                     id.if_issue <= '1';
@@ -420,7 +431,7 @@ begin
             -- Rn > 0, 1 -> T
                     -- X = Rn
               --    ex.xbus_sel <= SEL_REG;
-              --    ex.regnum_x <= '0' & op.code(11 downto 8);
+              --    ex.regnum_x <= rn;
                     -- Y = 0
                     ex.ybus_sel <= SEL_IMM;
                     ex.arith_sr_func <= SGRTER;
@@ -436,7 +447,7 @@ begin
             -- Rn >= 0, 1->T
                     -- X = Rn
               --    ex.xbus_sel <= SEL_REG;
-              --    ex.regnum_x <= '0' & op.code(11 downto 8);
+              --    ex.regnum_x <= rn;
                     -- Y = 0
                     ex.ybus_sel <= SEL_IMM;
                     ex.arith_sr_func <= SGRTER_EQ;
@@ -452,7 +463,7 @@ begin
             -- Rn-1 ->Rn; If Rn is 0, 1 -> T, if Rn is nonzero, 0 -> T
                     -- X = Rn
               --    ex.xbus_sel <= SEL_REG;
-              --    ex.regnum_x <= '0' & op.code(11 downto 8);
+              --    ex.regnum_x <= rn;
                     -- Y = 1
                     ex.ybus_sel <= SEL_IMM;
                     -- Z = X - Y
@@ -463,7 +474,7 @@ begin
                     imm_enum <= IMM_P1;
                     -- Rn = Z
                     ex_stall.wrreg_z <= '1';
-              --    ex.regnum_z <= '0' & op.code(11 downto 8);
+              --    ex.regnum_z <= rn;
                     id.incpc <= '1';
                     dispatch <= '1';
                     id.if_issue <= '1';
@@ -481,7 +492,7 @@ begin
                     imm_enum <= IMM_P1;
                     -- Rn = Z
                     ex_stall.wrreg_z <= '1';
-              --    ex.regnum_z <= '0' & op.code(11 downto 8);
+              --    ex.regnum_z <= rn;
                     id.incpc <= '1';
                     dispatch <= '1';
                     id.if_issue <= '1';
@@ -491,7 +502,7 @@ begin
             -- T<-Rn<-MSB
                     -- X = Rn
               --    ex.xbus_sel <= SEL_REG;
-              --    ex.regnum_x <= '0' & op.code(11 downto 8);
+              --    ex.regnum_x <= rn;
                     -- Y = 1
                     ex.ybus_sel <= SEL_IMM;
                     -- Z = X shift rotate Y
@@ -502,7 +513,7 @@ begin
                     imm_enum <= IMM_P1;
                     -- Rn = Z
                     ex_stall.wrreg_z <= '1';
-              --    ex.regnum_z <= '0' & op.code(11 downto 8);
+              --    ex.regnum_z <= rn;
                     id.incpc <= '1';
                     dispatch <= '1';
                     id.if_issue <= '1';
@@ -512,7 +523,7 @@ begin
             -- LSB->Rn->T
                     -- X = Rn
               --    ex.xbus_sel <= SEL_REG;
-              --    ex.regnum_x <= '0' & op.code(11 downto 8);
+              --    ex.regnum_x <= rn;
                     -- Y = -1
                     ex.ybus_sel <= SEL_IMM;
                     -- Z = X shift rotate Y
@@ -523,7 +534,7 @@ begin
                     imm_enum <= IMM_N1;
                     -- Rn = Z
                     ex_stall.wrreg_z <= '1';
-              --    ex.regnum_z <= '0' & op.code(11 downto 8);
+              --    ex.regnum_z <= rn;
                     id.incpc <= '1';
                     dispatch <= '1';
                     id.if_issue <= '1';
@@ -533,7 +544,7 @@ begin
             -- T<-Rn<-T
                     -- X = Rn
               --    ex.xbus_sel <= SEL_REG;
-              --    ex.regnum_x <= '0' & op.code(11 downto 8);
+              --    ex.regnum_x <= rn;
                     -- Y = 1
                     ex.ybus_sel <= SEL_IMM;
                     -- Z = X shift rotatec Y
@@ -544,7 +555,7 @@ begin
                     imm_enum <= IMM_P1;
                     -- Rn = Z
                     ex_stall.wrreg_z <= '1';
-              --    ex.regnum_z <= '0' & op.code(11 downto 8);
+              --    ex.regnum_z <= rn;
                     id.incpc <= '1';
                     dispatch <= '1';
                     id.if_issue <= '1';
@@ -554,7 +565,7 @@ begin
             -- T->Rn->T
                     -- X = Rn
               --    ex.xbus_sel <= SEL_REG;
-              --    ex.regnum_x <= '0' & op.code(11 downto 8);
+              --    ex.regnum_x <= rn;
                     -- Y = -1
                     ex.ybus_sel <= SEL_IMM;
                     -- Z = X shift rotatec Y
@@ -565,7 +576,7 @@ begin
                     imm_enum <= IMM_N1;
                     -- Rn = Z
                     ex_stall.wrreg_z <= '1';
-              --    ex.regnum_z <= '0' & op.code(11 downto 8);
+              --    ex.regnum_z <= rn;
                     id.incpc <= '1';
                     dispatch <= '1';
                     id.if_issue <= '1';
@@ -575,7 +586,7 @@ begin
             -- T<-Rn<-0
                     -- X = Rn
               --    ex.xbus_sel <= SEL_REG;
-              --    ex.regnum_x <= '0' & op.code(11 downto 8);
+              --    ex.regnum_x <= rn;
                     -- Y = 1
                     ex.ybus_sel <= SEL_IMM;
                     -- Z = X shift logic Y
@@ -586,7 +597,7 @@ begin
                     imm_enum <= IMM_P1;
                     -- Rn = Z
                     ex_stall.wrreg_z <= '1';
-              --    ex.regnum_z <= '0' & op.code(11 downto 8);
+              --    ex.regnum_z <= rn;
                     id.incpc <= '1';
                     dispatch <= '1';
                     id.if_issue <= '1';
@@ -596,7 +607,7 @@ begin
             -- MSB->Rn->T
                     -- X = Rn
               --    ex.xbus_sel <= SEL_REG;
-              --    ex.regnum_x <= '0' & op.code(11 downto 8);
+              --    ex.regnum_x <= rn;
                     -- Y = -1
                     ex.ybus_sel <= SEL_IMM;
                     -- Z = X shift arith Y
@@ -607,7 +618,7 @@ begin
                     imm_enum <= IMM_N1;
                     -- Rn = Z
                     ex_stall.wrreg_z <= '1';
-              --    ex.regnum_z <= '0' & op.code(11 downto 8);
+              --    ex.regnum_z <= rn;
                     id.incpc <= '1';
                     dispatch <= '1';
                     id.if_issue <= '1';
@@ -617,7 +628,7 @@ begin
             -- T<-Rn<-0
                     -- X = Rn
               --    ex.xbus_sel <= SEL_REG;
-              --    ex.regnum_x <= '0' & op.code(11 downto 8);
+              --    ex.regnum_x <= rn;
                     -- Y = 1
                     ex.ybus_sel <= SEL_IMM;
                     -- Z = X shift logic Y
@@ -628,7 +639,7 @@ begin
                     imm_enum <= IMM_P1;
                     -- Rn = Z
                     ex_stall.wrreg_z <= '1';
-              --    ex.regnum_z <= '0' & op.code(11 downto 8);
+              --    ex.regnum_z <= rn;
                     id.incpc <= '1';
                     dispatch <= '1';
                     id.if_issue <= '1';
@@ -638,7 +649,7 @@ begin
             -- 0->Rn->T
                     -- X = Rn
               --    ex.xbus_sel <= SEL_REG;
-              --    ex.regnum_x <= '0' & op.code(11 downto 8);
+              --    ex.regnum_x <= rn;
                     -- Y = -1
                     ex.ybus_sel <= SEL_IMM;
                     -- Z = X shift logic Y
@@ -649,7 +660,7 @@ begin
                     imm_enum <= IMM_N1;
                     -- Rn = Z
                     ex_stall.wrreg_z <= '1';
-              --    ex.regnum_z <= '0' & op.code(11 downto 8);
+              --    ex.regnum_z <= rn;
                     id.incpc <= '1';
                     dispatch <= '1';
                     id.if_issue <= '1';
@@ -659,7 +670,7 @@ begin
             -- Rn<<2 -> Rn
                     -- X = Rn
               --    ex.xbus_sel <= SEL_REG;
-              --    ex.regnum_x <= '0' & op.code(11 downto 8);
+              --    ex.regnum_x <= rn;
                     -- Y = 2
                     ex.ybus_sel <= SEL_IMM;
                     -- Z = X shift logic Y
@@ -668,7 +679,7 @@ begin
                     imm_enum <= IMM_P2;
                     -- Rn = Z
                     ex_stall.wrreg_z <= '1';
-              --    ex.regnum_z <= '0' & op.code(11 downto 8);
+              --    ex.regnum_z <= rn;
                     id.incpc <= '1';
                     dispatch <= '1';
                     id.if_issue <= '1';
@@ -678,7 +689,7 @@ begin
             -- Rn>>2 -> Rn
                     -- X = Rn
               --    ex.xbus_sel <= SEL_REG;
-              --    ex.regnum_x <= '0' & op.code(11 downto 8);
+              --    ex.regnum_x <= rn;
                     -- Y = -2
                     ex.ybus_sel <= SEL_IMM;
                     -- Z = X shift logic Y
@@ -687,7 +698,7 @@ begin
                     imm_enum <= IMM_N2;
                     -- Rn = Z
                     ex_stall.wrreg_z <= '1';
-              --    ex.regnum_z <= '0' & op.code(11 downto 8);
+              --    ex.regnum_z <= rn;
                     id.incpc <= '1';
                     dispatch <= '1';
                     id.if_issue <= '1';
@@ -697,7 +708,7 @@ begin
             -- Rn<<8 -> Rn
                     -- X = Rn
               --    ex.xbus_sel <= SEL_REG;
-              --    ex.regnum_x <= '0' & op.code(11 downto 8);
+              --    ex.regnum_x <= rn;
                     -- Y = 8
                     ex.ybus_sel <= SEL_IMM;
                     -- Z = X shift logic Y
@@ -706,7 +717,7 @@ begin
                     imm_enum <= IMM_P8;
                     -- Rn = Z
                     ex_stall.wrreg_z <= '1';
-              --    ex.regnum_z <= '0' & op.code(11 downto 8);
+              --    ex.regnum_z <= rn;
                     id.incpc <= '1';
                     dispatch <= '1';
                     id.if_issue <= '1';
@@ -716,7 +727,7 @@ begin
             -- Rn>>8 -> Rn
                     -- X = Rn
               --    ex.xbus_sel <= SEL_REG;
-              --    ex.regnum_x <= '0' & op.code(11 downto 8);
+              --    ex.regnum_x <= rn;
                     -- Y = -8
                     ex.ybus_sel <= SEL_IMM;
                     -- Z = X shift logic Y
@@ -725,7 +736,7 @@ begin
                     imm_enum <= IMM_N8;
                     -- Rn = Z
                     ex_stall.wrreg_z <= '1';
-              --    ex.regnum_z <= '0' & op.code(11 downto 8);
+              --    ex.regnum_z <= rn;
                     id.incpc <= '1';
                     dispatch <= '1';
                     id.if_issue <= '1';
@@ -735,7 +746,7 @@ begin
             -- Rn<<16 -> Rn
                     -- X = Rn
               --    ex.xbus_sel <= SEL_REG;
-              --    ex.regnum_x <= '0' & op.code(11 downto 8);
+              --    ex.regnum_x <= rn;
                     -- Y = 16
                     ex.ybus_sel <= SEL_IMM;
                     -- Z = X shift logic Y
@@ -744,7 +755,7 @@ begin
                     imm_enum <= IMM_P16;
                     -- Rn = Z
                     ex_stall.wrreg_z <= '1';
-              --    ex.regnum_z <= '0' & op.code(11 downto 8);
+              --    ex.regnum_z <= rn;
                     id.incpc <= '1';
                     dispatch <= '1';
                     id.if_issue <= '1';
@@ -754,7 +765,7 @@ begin
             -- Rn>>16 -> Rn
                     -- X = Rn
               --    ex.xbus_sel <= SEL_REG;
-              --    ex.regnum_x <= '0' & op.code(11 downto 8);
+              --    ex.regnum_x <= rn;
                     -- Y = -16
                     ex.ybus_sel <= SEL_IMM;
                     -- Z = X shift logic Y
@@ -763,7 +774,7 @@ begin
                     imm_enum <= IMM_N16;
                     -- Rn = Z
                     ex_stall.wrreg_z <= '1';
-              --    ex.regnum_z <= '0' & op.code(11 downto 8);
+              --    ex.regnum_z <= rn;
                     id.incpc <= '1';
                     dispatch <= '1';
                     id.if_issue <= '1';
@@ -777,7 +788,7 @@ begin
                     maskint_next <= '1';
                     -- Rn = Z
                     ex_stall.wrreg_z <= '1';
-              --    ex.regnum_z <= '0' & op.code(11 downto 8);
+              --    ex.regnum_z <= rn;
                     id.incpc <= '1';
                     dispatch <= '1';
                     id.if_issue <= '1';
@@ -792,7 +803,7 @@ begin
                     maskint_next <= '1';
                     -- Rn = Z
                     ex_stall.wrreg_z <= '1';
-              --    ex.regnum_z <= '0' & op.code(11 downto 8);
+              --    ex.regnum_z <= rn;
                     id.incpc <= '1';
                     dispatch <= '1';
                     id.if_issue <= '1';
@@ -807,7 +818,7 @@ begin
                     maskint_next <= '1';
                     -- Rn = Z
                     ex_stall.wrreg_z <= '1';
-              --    ex.regnum_z <= '0' & op.code(11 downto 8);
+              --    ex.regnum_z <= rn;
                     id.incpc <= '1';
                     dispatch <= '1';
                     id.if_issue <= '1';
@@ -822,7 +833,7 @@ begin
                     maskint_next <= '1';
                     -- Rn = Z
                     ex_stall.wrreg_z <= '1';
-              --    ex.regnum_z <= '0' & op.code(11 downto 8);
+              --    ex.regnum_z <= rn;
                     id.incpc <= '1';
                     dispatch <= '1';
                     id.if_issue <= '1';
@@ -837,7 +848,7 @@ begin
                     maskint_next <= '1';
                     -- Rn = Z
                     ex_stall.wrreg_z <= '1';
-              --    ex.regnum_z <= '0' & op.code(11 downto 8);
+              --    ex.regnum_z <= rn;
                     id.incpc <= '1';
                     dispatch <= '1';
                     id.if_issue <= '1';
@@ -852,7 +863,7 @@ begin
                     maskint_next <= '1';
                     -- Rn = Z
                     ex_stall.wrreg_z <= '1';
-              --    ex.regnum_z <= '0' & op.code(11 downto 8);
+              --    ex.regnum_z <= rn;
                     id.incpc <= '1';
                     dispatch <= '1';
                     id.if_issue <= '1';
@@ -864,7 +875,7 @@ begin
                 when x"0" =>
                     -- X = Rn
               --    ex.xbus_sel <= SEL_REG;
-              --    ex.regnum_x <= '0' & op.code(11 downto 8);
+              --    ex.regnum_x <= rn;
                     -- W = MEM[X] byte
                     ex_stall.ma_issue <= '1';
                     ex.ma_wr <= '0';
@@ -881,7 +892,7 @@ begin
                 when x"2" =>
                     -- X = Rn
               --    ex.xbus_sel <= SEL_REG;
-              --    ex.regnum_x <= '0' & op.code(11 downto 8);
+              --    ex.regnum_x <= rn;
                     -- Y = TEMP0
               --    ex.ybus_sel <= SEL_REG;
                     ex.regnum_y <= "10011";
@@ -913,7 +924,7 @@ begin
             -- Rn-4 ->Rn,SR ->(Rn)
                     -- X = Rn
               --    ex.xbus_sel <= SEL_REG;
-              --    ex.regnum_x <= '0' & op.code(11 downto 8);
+              --    ex.regnum_x <= rn;
                     -- Y = SR
                     ex.ybus_sel <= SEL_SR;
                     -- Z = X - 4
@@ -930,7 +941,7 @@ begin
               --    ex.mem_size <= LONG;
                     -- Rn = Z
                     ex_stall.wrreg_z <= '1';
-              --    ex.regnum_z <= '0' & op.code(11 downto 8);
+              --    ex.regnum_z <= rn;
                     id.incpc <= '1';
                     dispatch <= '1';
                     id.if_issue <= '1';
@@ -940,7 +951,7 @@ begin
             -- Rn-4 ->Rn,GBR ->(Rn)
                     -- X = Rn
               --    ex.xbus_sel <= SEL_REG;
-              --    ex.regnum_x <= '0' & op.code(11 downto 8);
+              --    ex.regnum_x <= rn;
                     -- Y = GBR
               --    ex.ybus_sel <= SEL_REG;
                     ex.regnum_y <= "10000";
@@ -958,7 +969,7 @@ begin
               --    ex.mem_size <= LONG;
                     -- Rn = Z
                     ex_stall.wrreg_z <= '1';
-              --    ex.regnum_z <= '0' & op.code(11 downto 8);
+              --    ex.regnum_z <= rn;
                     id.incpc <= '1';
                     dispatch <= '1';
                     id.if_issue <= '1';
@@ -968,7 +979,7 @@ begin
             -- Rn - 4 -> Rn, VBR -> (Rn)
                     -- X = Rn
               --    ex.xbus_sel <= SEL_REG;
-              --    ex.regnum_x <= '0' & op.code(11 downto 8);
+              --    ex.regnum_x <= rn;
                     -- Y = VBR
               --    ex.ybus_sel <= SEL_REG;
                     ex.regnum_y <= "10001";
@@ -986,7 +997,7 @@ begin
               --    ex.mem_size <= LONG;
                     -- Rn = Z
                     ex_stall.wrreg_z <= '1';
-              --    ex.regnum_z <= '0' & op.code(11 downto 8);
+              --    ex.regnum_z <= rn;
                     id.incpc <= '1';
                     dispatch <= '1';
                     id.if_issue <= '1';
@@ -996,7 +1007,7 @@ begin
             -- Rn - 4 -> Rn, MACH -> (Rn)
                     -- X = Rn
               --    ex.xbus_sel <= SEL_REG;
-              --    ex.regnum_x <= '0' & op.code(11 downto 8);
+              --    ex.regnum_x <= rn;
                     -- Y = MACH
                     ex.ybus_sel <= SEL_MACH;
                     -- Z = X - 4
@@ -1014,7 +1025,7 @@ begin
               --    ex.mem_size <= LONG;
                     -- Rn = Z
                     ex_stall.wrreg_z <= '1';
-              --    ex.regnum_z <= '0' & op.code(11 downto 8);
+              --    ex.regnum_z <= rn;
                     id.incpc <= '1';
                     dispatch <= '1';
                     id.if_issue <= '1';
@@ -1024,7 +1035,7 @@ begin
             -- Rn-4->Rn,MACL->(Rn)
                     -- X = Rn
               --    ex.xbus_sel <= SEL_REG;
-              --    ex.regnum_x <= '0' & op.code(11 downto 8);
+              --    ex.regnum_x <= rn;
                     -- Y = MACL
                     ex.ybus_sel <= SEL_MACL;
                     -- Z = X - 4
@@ -1042,7 +1053,7 @@ begin
               --    ex.mem_size <= LONG;
                     -- Rn = Z
                     ex_stall.wrreg_z <= '1';
-              --    ex.regnum_z <= '0' & op.code(11 downto 8);
+              --    ex.regnum_z <= rn;
                     id.incpc <= '1';
                     dispatch <= '1';
                     id.if_issue <= '1';
@@ -1052,7 +1063,7 @@ begin
             -- Rn-4->Rn,PR->(Rn)
                     -- X = Rn
               --    ex.xbus_sel <= SEL_REG;
-              --    ex.regnum_x <= '0' & op.code(11 downto 8);
+              --    ex.regnum_x <= rn;
                     -- Y = PR
               --    ex.ybus_sel <= SEL_REG;
                     ex.regnum_y <= "10010";
@@ -1070,7 +1081,7 @@ begin
               --    ex.mem_size <= LONG;
                     -- Rn = Z
                     ex_stall.wrreg_z <= '1';
-              --    ex.regnum_z <= '0' & op.code(11 downto 8);
+              --    ex.regnum_z <= rn;
                     id.incpc <= '1';
                     dispatch <= '1';
                     id.if_issue <= '1';
@@ -1080,7 +1091,7 @@ begin
             -- Rm -> SR
                     -- Y = Rm
               --    ex.ybus_sel <= SEL_REG;
-                    ex.regnum_y <= '0' & op.code(11 downto 8);
+                    ex.regnum_y <= rn;
                     ex_stall.zbus_sel <= SEL_YBUS;
                     ex_stall.sr_sel <= SEL_ZBUS;
                     maskint_next <= '1';
@@ -1095,7 +1106,7 @@ begin
             -- Rm -> GBR
                     -- Y = Rm
               --    ex.ybus_sel <= SEL_REG;
-                    ex.regnum_y <= '0' & op.code(11 downto 8);
+                    ex.regnum_y <= rn;
                     ex_stall.zbus_sel <= SEL_YBUS;
                     maskint_next <= '1';
                     -- GBR = Z
@@ -1110,7 +1121,7 @@ begin
             -- Rm -> VBR
                     -- Y = Rm
               --    ex.ybus_sel <= SEL_REG;
-                    ex.regnum_y <= '0' & op.code(11 downto 8);
+                    ex.regnum_y <= rn;
                     ex_stall.zbus_sel <= SEL_YBUS;
                     maskint_next <= '1';
                     -- VBR = Z
@@ -1125,7 +1136,7 @@ begin
             -- Rm-> MACH
                     -- Y = Rm
               --    ex.ybus_sel <= SEL_REG;
-                    ex.regnum_y <= '0' & op.code(11 downto 8);
+                    ex.regnum_y <= rn;
                     ex_stall.zbus_sel <= SEL_YBUS;
                     ex_stall.macsel1 <= SEL_ZBUS;
                     ex_stall.wrmach <= '1';
@@ -1140,7 +1151,7 @@ begin
             -- Rm -> MACL
                     -- Y = Rm
               --    ex.ybus_sel <= SEL_REG;
-                    ex.regnum_y <= '0' & op.code(11 downto 8);
+                    ex.regnum_y <= rn;
                     ex_stall.zbus_sel <= SEL_YBUS;
                     ex_stall.macsel2 <= SEL_ZBUS;
                     ex_stall.wrmacl <= '1';
@@ -1155,7 +1166,7 @@ begin
             -- Rm -> PR
                     -- Y = Rm
               --    ex.ybus_sel <= SEL_REG;
-                    ex.regnum_y <= '0' & op.code(11 downto 8);
+                    ex.regnum_y <= rn;
                     ex_stall.zbus_sel <= SEL_YBUS;
                     maskint_next <= '1';
                     -- PR = Z
@@ -1172,7 +1183,7 @@ begin
                 when x"0" =>
                     -- X = Rm
               --    ex.xbus_sel <= SEL_REG;
-              --    ex.regnum_x <= '0' & op.code(11 downto 8);
+              --    ex.regnum_x <= rn;
                     -- Z = X + 0
                     ex.aluiny_sel <= SEL_IMM;
               --    ex_stall.zbus_sel <= SEL_ARITH;
@@ -1198,7 +1209,7 @@ begin
                 when x"0" =>
                     -- X = Rm
               --    ex.xbus_sel <= SEL_REG;
-              --    ex.regnum_x <= '0' & op.code(11 downto 8);
+              --    ex.regnum_x <= rn;
                     -- Z = X + 0
                     ex.aluiny_sel <= SEL_IMM;
               --    ex_stall.zbus_sel <= SEL_ARITH;
@@ -1228,7 +1239,7 @@ begin
                 when x"0" =>
                     -- X = Rm
               --    ex.xbus_sel <= SEL_REG;
-              --    ex.regnum_x <= '0' & op.code(11 downto 8);
+              --    ex.regnum_x <= rn;
                     wb_stall.wrsr_w <= '1';
                     -- W = MEM[X] long
                     ex_stall.ma_issue <= '1';
@@ -1239,7 +1250,7 @@ begin
                 when x"1" =>
                     -- X = Rm
               --    ex.xbus_sel <= SEL_REG;
-              --    ex.regnum_x <= '0' & op.code(11 downto 8);
+              --    ex.regnum_x <= rn;
                     -- Z = X + 4
                     ex.aluiny_sel <= SEL_IMM;
               --    ex_stall.zbus_sel <= SEL_ARITH;
@@ -1247,7 +1258,7 @@ begin
               --    imm_enum <= IMM_P4;
                     -- Rm = Z
                     ex_stall.wrreg_z <= '1';
-              --    ex.regnum_z <= '0' & op.code(11 downto 8);
+              --    ex.regnum_z <= rn;
 
                 when x"2" =>
                     maskint_next <= '1';
@@ -1265,7 +1276,7 @@ begin
                 when x"0" =>
                     -- X = Rm
               --    ex.xbus_sel <= SEL_REG;
-              --    ex.regnum_x <= '0' & op.code(11 downto 8);
+              --    ex.regnum_x <= rn;
                     -- W = MEM[X] long
                     ex_stall.ma_issue <= '1';
                     ex.ma_wr <= '0';
@@ -1278,7 +1289,7 @@ begin
                 when x"1" =>
                     -- X = Rm
               --    ex.xbus_sel <= SEL_REG;
-              --    ex.regnum_x <= '0' & op.code(11 downto 8);
+              --    ex.regnum_x <= rn;
                     -- Z = X + 4
                     ex.aluiny_sel <= SEL_IMM;
               --    ex_stall.zbus_sel <= SEL_ARITH;
@@ -1286,7 +1297,7 @@ begin
               --    imm_enum <= IMM_P4;
                     -- Rm = Z
                     ex_stall.wrreg_z <= '1';
-              --    ex.regnum_z <= '0' & op.code(11 downto 8);
+              --    ex.regnum_z <= rn;
 
                 when x"2" =>
                     maskint_next <= '1';
@@ -1304,7 +1315,7 @@ begin
                 when x"0" =>
                     -- X = Rm
               --    ex.xbus_sel <= SEL_REG;
-              --    ex.regnum_x <= '0' & op.code(11 downto 8);
+              --    ex.regnum_x <= rn;
                     -- W = MEM[X] long
                     ex_stall.ma_issue <= '1';
                     ex.ma_wr <= '0';
@@ -1317,7 +1328,7 @@ begin
                 when x"1" =>
                     -- X = Rm
               --    ex.xbus_sel <= SEL_REG;
-              --    ex.regnum_x <= '0' & op.code(11 downto 8);
+              --    ex.regnum_x <= rn;
                     -- Z = X + 4
                     ex.aluiny_sel <= SEL_IMM;
               --    ex_stall.zbus_sel <= SEL_ARITH;
@@ -1325,7 +1336,7 @@ begin
               --    imm_enum <= IMM_P4;
                     -- Rm = Z
                     ex_stall.wrreg_z <= '1';
-              --    ex.regnum_z <= '0' & op.code(11 downto 8);
+              --    ex.regnum_z <= rn;
 
                 when x"2" =>
                     maskint_next <= '1';
@@ -1341,7 +1352,7 @@ begin
             -- (Rm)->MACH,Rm+4->Rm
                     -- X = Rm
               --    ex.xbus_sel <= SEL_REG;
-              --    ex.regnum_x <= '0' & op.code(11 downto 8);
+              --    ex.regnum_x <= rn;
                     -- Z = X + 4
                     ex.aluiny_sel <= SEL_IMM;
               --    ex_stall.zbus_sel <= SEL_ARITH;
@@ -1359,7 +1370,7 @@ begin
               --    ex.mem_size <= LONG;
                     -- Rm = Z
                     ex_stall.wrreg_z <= '1';
-              --    ex.regnum_z <= '0' & op.code(11 downto 8);
+              --    ex.regnum_z <= rn;
                     id.incpc <= '1';
                     dispatch <= '1';
                     id.if_issue <= '1';
@@ -1369,7 +1380,7 @@ begin
             -- (Rm)->MACL,Rm+4->Rm
                     -- X = Rm
               --    ex.xbus_sel <= SEL_REG;
-              --    ex.regnum_x <= '0' & op.code(11 downto 8);
+              --    ex.regnum_x <= rn;
                     -- Z = X + 4
                     ex.aluiny_sel <= SEL_IMM;
               --    ex_stall.zbus_sel <= SEL_ARITH;
@@ -1387,7 +1398,7 @@ begin
               --    ex.mem_size <= LONG;
                     -- Rm = Z
                     ex_stall.wrreg_z <= '1';
-              --    ex.regnum_z <= '0' & op.code(11 downto 8);
+              --    ex.regnum_z <= rn;
                     id.incpc <= '1';
                     dispatch <= '1';
                     id.if_issue <= '1';
@@ -1399,7 +1410,7 @@ begin
                 when x"0" =>
                     -- X = Rm
               --    ex.xbus_sel <= SEL_REG;
-              --    ex.regnum_x <= '0' & op.code(11 downto 8);
+              --    ex.regnum_x <= rn;
                     maskint_next <= '1';
                     -- W = MEM[X] long
                     ex_stall.ma_issue <= '1';
@@ -1413,7 +1424,7 @@ begin
                 when x"1" =>
                     -- X = Rm
               --    ex.xbus_sel <= SEL_REG;
-              --    ex.regnum_x <= '0' & op.code(11 downto 8);
+              --    ex.regnum_x <= rn;
                     -- Z = X + 4
                     ex.aluiny_sel <= SEL_IMM;
               --    ex_stall.zbus_sel <= SEL_ARITH;
@@ -1422,7 +1433,7 @@ begin
                     maskint_next <= '1';
                     -- Rm = Z
                     ex_stall.wrreg_z <= '1';
-              --    ex.regnum_z <= '0' & op.code(11 downto 8);
+              --    ex.regnum_z <= rn;
                     id.incpc <= '1';
                     dispatch <= '1';
                     id.if_issue <= '1';
@@ -1439,7 +1450,7 @@ begin
                     ex.xbus_sel <= SEL_PC;
                     -- Y = Rm
               --    ex.ybus_sel <= SEL_REG;
-                    ex.regnum_y <= '0' & op.code(11 downto 8);
+                    ex.regnum_y <= rn;
                     -- Z = X + Y
               --    ex_stall.zbus_sel <= SEL_ARITH;
               --    ex.arith_func <= ADD;
@@ -1465,7 +1476,7 @@ begin
                     ex.xbus_sel <= SEL_PC;
                     -- Y = Rm
               --    ex.ybus_sel <= SEL_REG;
-                    ex.regnum_y <= '0' & op.code(11 downto 8);
+                    ex.regnum_y <= rn;
                     -- Z = X + Y
               --    ex_stall.zbus_sel <= SEL_ARITH;
               --    ex.arith_func <= ADD;
@@ -1491,16 +1502,16 @@ begin
             -- Rn+Rm->Rn
                     -- X = Rn
               --    ex.xbus_sel <= SEL_REG;
-              --    ex.regnum_x <= '0' & op.code(11 downto 8);
+              --    ex.regnum_x <= rn;
                     -- Y = Rm
               --    ex.ybus_sel <= SEL_REG;
-              --    ex.regnum_y <= '0' & op.code(7 downto 4);
+              --    ex.regnum_y <= rm;
                     -- Z = X + Y
               --    ex_stall.zbus_sel <= SEL_ARITH;
               --    ex.arith_func <= ADD;
                     -- Rn = Z
                     ex_stall.wrreg_z <= '1';
-              --    ex.regnum_z <= '0' & op.code(11 downto 8);
+              --    ex.regnum_z <= rn;
                     id.incpc <= '1';
                     dispatch <= '1';
                     id.if_issue <= '1';
@@ -1510,10 +1521,10 @@ begin
             -- Rn + Rm + T -> Rn, carry ->T
                     -- X = Rn
               --    ex.xbus_sel <= SEL_REG;
-              --    ex.regnum_x <= '0' & op.code(11 downto 8);
+              --    ex.regnum_x <= rn;
                     -- Y = Rm
               --    ex.ybus_sel <= SEL_REG;
-              --    ex.regnum_y <= '0' & op.code(7 downto 4);
+              --    ex.regnum_y <= rm;
                     -- Z = X + Y
               --    ex_stall.zbus_sel <= SEL_ARITH;
               --    ex.arith_func <= ADD;
@@ -1522,7 +1533,7 @@ begin
                     ex_stall.t_sel <= SEL_CARRY;
                     -- Rn = Z
                     ex_stall.wrreg_z <= '1';
-              --    ex.regnum_z <= '0' & op.code(11 downto 8);
+              --    ex.regnum_z <= rn;
                     id.incpc <= '1';
                     dispatch <= '1';
                     id.if_issue <= '1';
@@ -1532,10 +1543,10 @@ begin
             -- Rn + Rm -> Rn, overflow ->T
                     -- X = Rn
               --    ex.xbus_sel <= SEL_REG;
-              --    ex.regnum_x <= '0' & op.code(11 downto 8);
+              --    ex.regnum_x <= rn;
                     -- Y = Rm
               --    ex.ybus_sel <= SEL_REG;
-              --    ex.regnum_y <= '0' & op.code(7 downto 4);
+              --    ex.regnum_y <= rm;
                     -- Z = X + Y
               --    ex_stall.zbus_sel <= SEL_ARITH;
                     ex.arith_sr_func <= OVERUNDERFLOW;
@@ -1543,7 +1554,7 @@ begin
                     ex_stall.sr_sel <= SEL_ARITH;
                     -- Rn = Z
                     ex_stall.wrreg_z <= '1';
-              --    ex.regnum_z <= '0' & op.code(11 downto 8);
+              --    ex.regnum_z <= rn;
                     id.incpc <= '1';
                     dispatch <= '1';
                     id.if_issue <= '1';
@@ -1553,16 +1564,16 @@ begin
             -- Rn&Rm->Rn
                     -- X = Rn
               --    ex.xbus_sel <= SEL_REG;
-              --    ex.regnum_x <= '0' & op.code(11 downto 8);
+              --    ex.regnum_x <= rn;
                     -- Y = Rm
               --    ex.ybus_sel <= SEL_REG;
-              --    ex.regnum_y <= '0' & op.code(7 downto 4);
+              --    ex.regnum_y <= rm;
                     -- Z = X and Y
                     ex_stall.zbus_sel <= SEL_LOGIC;
                     ex.logic_func <= LOGIC_AND;
                     -- Rn = Z
                     ex_stall.wrreg_z <= '1';
-              --    ex.regnum_z <= '0' & op.code(11 downto 8);
+              --    ex.regnum_z <= rn;
                     id.incpc <= '1';
                     dispatch <= '1';
                     id.if_issue <= '1';
@@ -1572,10 +1583,10 @@ begin
             -- When Rn=Rm,1->T
                     -- X = Rn
               --    ex.xbus_sel <= SEL_REG;
-              --    ex.regnum_x <= '0' & op.code(11 downto 8);
+              --    ex.regnum_x <= rn;
                     -- Y = Rm
               --    ex.ybus_sel <= SEL_REG;
-              --    ex.regnum_y <= '0' & op.code(7 downto 4);
+              --    ex.regnum_y <= rm;
               --    ex.logic_sr_func <= ZERO;
               --    ex.logic_func <= LOGIC_XOR;
                     ex_stall.sr_sel <= SEL_LOGIC;
@@ -1588,10 +1599,10 @@ begin
             -- When unsigned and Rn >= Rm,1->T
                     -- X = Rn
               --    ex.xbus_sel <= SEL_REG;
-              --    ex.regnum_x <= '0' & op.code(11 downto 8);
+              --    ex.regnum_x <= rn;
                     -- Y = Rm
               --    ex.ybus_sel <= SEL_REG;
-              --    ex.regnum_y <= '0' & op.code(7 downto 4);
+              --    ex.regnum_y <= rm;
                     ex.arith_sr_func <= UGRTER_EQ;
                     ex.arith_func <= SUB;
                     ex_stall.sr_sel <= SEL_ARITH;
@@ -1604,10 +1615,10 @@ begin
             -- When signed and Rn >= Rm,1->T
                     -- X = Rn
               --    ex.xbus_sel <= SEL_REG;
-              --    ex.regnum_x <= '0' & op.code(11 downto 8);
+              --    ex.regnum_x <= rn;
                     -- Y = Rm
               --    ex.ybus_sel <= SEL_REG;
-              --    ex.regnum_y <= '0' & op.code(7 downto 4);
+              --    ex.regnum_y <= rm;
                     ex.arith_sr_func <= SGRTER_EQ;
                     ex.arith_func <= SUB;
                     ex_stall.sr_sel <= SEL_ARITH;
@@ -1620,10 +1631,10 @@ begin
             -- When unsigned and Rn > Rm,1->T
                     -- X = Rn
               --    ex.xbus_sel <= SEL_REG;
-              --    ex.regnum_x <= '0' & op.code(11 downto 8);
+              --    ex.regnum_x <= rn;
                     -- Y = Rm
               --    ex.ybus_sel <= SEL_REG;
-              --    ex.regnum_y <= '0' & op.code(7 downto 4);
+              --    ex.regnum_y <= rm;
                     ex.arith_sr_func <= UGRTER;
                     ex.arith_func <= SUB;
                     ex_stall.sr_sel <= SEL_ARITH;
@@ -1636,10 +1647,10 @@ begin
             -- When signed and Rn > Rm,1->T
                     -- X = Rn
               --    ex.xbus_sel <= SEL_REG;
-              --    ex.regnum_x <= '0' & op.code(11 downto 8);
+              --    ex.regnum_x <= rn;
                     -- Y = Rm
               --    ex.ybus_sel <= SEL_REG;
-              --    ex.regnum_y <= '0' & op.code(7 downto 4);
+              --    ex.regnum_y <= rm;
                     ex.arith_sr_func <= SGRTER;
                     ex.arith_func <= SUB;
                     ex_stall.sr_sel <= SEL_ARITH;
@@ -1652,10 +1663,10 @@ begin
             -- When a byte in Rn equals a byte in Rm, 1-> T
                     -- X = Rn
               --    ex.xbus_sel <= SEL_REG;
-              --    ex.regnum_x <= '0' & op.code(11 downto 8);
+              --    ex.regnum_x <= rn;
                     -- Y = Rm
               --    ex.ybus_sel <= SEL_REG;
-              --    ex.regnum_y <= '0' & op.code(7 downto 4);
+              --    ex.regnum_y <= rm;
                     ex.logic_sr_func <= BYTE_EQ;
               --    ex.logic_func <= LOGIC_XOR;
                     ex_stall.sr_sel <= SEL_LOGIC;
@@ -1670,7 +1681,7 @@ begin
                 when x"0" =>
                     -- Y = Rn
               --    ex.ybus_sel <= SEL_REG;
-                    ex.regnum_y <= '0' & op.code(11 downto 8);
+                    ex.regnum_y <= rn;
                     ex_stall.zbus_sel <= SEL_YBUS;
                     -- TEMP0 = Z
                     ex_stall.wrreg_z <= '1';
@@ -1688,15 +1699,15 @@ begin
                     ex.mem_lock <= '1';
                     -- Rn = W
                     wb_stall.wrreg_w <= '1';
-              --    wb.regnum_w <= '0' & op.code(11 downto 8);
+              --    wb.regnum_w <= rn;
 
                 when x"2" =>
                     -- X = Rn
               --    ex.xbus_sel <= SEL_REG;
-              --    ex.regnum_x <= '0' & op.code(11 downto 8);
+              --    ex.regnum_x <= rn;
                     -- Y = Rm
               --    ex.ybus_sel <= SEL_REG;
-              --    ex.regnum_y <= '0' & op.code(7 downto 4);
+              --    ex.regnum_y <= rm;
               --    ex.logic_sr_func <= ZERO;
               --    ex.logic_func <= LOGIC_XOR;
                     ex_stall.sr_sel <= SEL_LOGIC;
@@ -1733,10 +1744,10 @@ begin
             -- 1-step division (Rn ÷ Rm)
                     -- X = Rn
               --    ex.xbus_sel <= SEL_REG;
-              --    ex.regnum_x <= '0' & op.code(11 downto 8);
+              --    ex.regnum_x <= rn;
                     -- Y = Rm
               --    ex.ybus_sel <= SEL_REG;
-              --    ex.regnum_y <= '0' & op.code(7 downto 4);
+              --    ex.regnum_y <= rm;
                     -- Z = (2*X + T) + Y
                     ex.aluinx_sel <= SEL_ROTCL;
               --    ex_stall.zbus_sel <= SEL_ARITH;
@@ -1745,7 +1756,7 @@ begin
                     ex_stall.sr_sel <= SEL_ARITH;
                     -- Rn = Z
                     ex_stall.wrreg_z <= '1';
-              --    ex.regnum_z <= '0' & op.code(11 downto 8);
+              --    ex.regnum_z <= rn;
                     id.incpc <= '1';
                     dispatch <= '1';
                     id.if_issue <= '1';
@@ -1755,10 +1766,10 @@ begin
             -- MSB of Rn-> Q, MSB of Rm->M,M^Q->T
                     -- X = Rn
               --    ex.xbus_sel <= SEL_REG;
-              --    ex.regnum_x <= '0' & op.code(11 downto 8);
+              --    ex.regnum_x <= rn;
                     -- Y = Rm
               --    ex.ybus_sel <= SEL_REG;
-              --    ex.regnum_y <= '0' & op.code(7 downto 4);
+              --    ex.regnum_y <= rm;
                     ex.arith_sr_func <= DIV0S;
               --    ex.arith_func <= ADD;
                     ex_stall.sr_sel <= SEL_ARITH;
@@ -1771,10 +1782,10 @@ begin
             -- Signed, Rn x Rm, MACH, MACL
                     -- X = Rn
               --    ex.xbus_sel <= SEL_REG;
-              --    ex.regnum_x <= '0' & op.code(11 downto 8);
+              --    ex.regnum_x <= rn;
                     -- Y = Rm
               --    ex.ybus_sel <= SEL_REG;
-              --    ex.regnum_y <= '0' & op.code(7 downto 4);
+              --    ex.regnum_y <= rm;
               --    ex_stall.macsel1 <= SEL_XBUS;
                     ex_stall.mulcom1 <= '1';
               --    ex_stall.macsel2 <= SEL_YBUS;
@@ -1790,10 +1801,10 @@ begin
             -- Unsigned, Rn x Rm, MACH, MACL
                     -- X = Rn
               --    ex.xbus_sel <= SEL_REG;
-              --    ex.regnum_x <= '0' & op.code(11 downto 8);
+              --    ex.regnum_x <= rn;
                     -- Y = Rm
               --    ex.ybus_sel <= SEL_REG;
-              --    ex.regnum_y <= '0' & op.code(7 downto 4);
+              --    ex.regnum_y <= rm;
               --    ex_stall.macsel1 <= SEL_XBUS;
                     ex_stall.mulcom1 <= '1';
               --    ex_stall.macsel2 <= SEL_YBUS;
@@ -1809,13 +1820,13 @@ begin
             -- Sign-extends Rm from byte -> Rn
                     -- Y = Rm
               --    ex.ybus_sel <= SEL_REG;
-              --    ex.regnum_y <= '0' & op.code(7 downto 4);
+              --    ex.regnum_y <= rm);
                     -- Z = (int8) Y
                     ex_stall.zbus_sel <= SEL_MANIP;
                     ex.alumanip <= EXTEND_SBYTE;
                     -- Rn = Z
                     ex_stall.wrreg_z <= '1';
-              --    ex.regnum_z <= '0' & op.code(11 downto 8);
+              --    ex.regnum_z <= rn;
                     id.incpc <= '1';
                     dispatch <= '1';
                     id.if_issue <= '1';
@@ -1825,13 +1836,13 @@ begin
             -- Sign-extends Rm from word -> Rn
                     -- Y = Rm
               --    ex.ybus_sel <= SEL_REG;
-              --    ex.regnum_y <= '0' & op.code(7 downto 4);
+              --    ex.regnum_y <= rm;
                     -- Z = (int16) Y
                     ex_stall.zbus_sel <= SEL_MANIP;
                     ex.alumanip <= EXTEND_SWORD;
                     -- Rn = Z
                     ex_stall.wrreg_z <= '1';
-              --    ex.regnum_z <= '0' & op.code(11 downto 8);
+              --    ex.regnum_z <= rn;
                     id.incpc <= '1';
                     dispatch <= '1';
                     id.if_issue <= '1';
@@ -1841,13 +1852,13 @@ begin
             -- Zero-extends Rm from byte -> Rn
                     -- Y = Rm
               --    ex.ybus_sel <= SEL_REG;
-              --    ex.regnum_y <= '0' & op.code(7 downto 4);
+              --    ex.regnum_y <= rm;
                     -- Z = (uint8) Y
                     ex_stall.zbus_sel <= SEL_MANIP;
                     ex.alumanip <= EXTEND_UBYTE;
                     -- Rn = Z
                     ex_stall.wrreg_z <= '1';
-              --    ex.regnum_z <= '0' & op.code(11 downto 8);
+              --    ex.regnum_z <= rn;
                     id.incpc <= '1';
                     dispatch <= '1';
                     id.if_issue <= '1';
@@ -1857,13 +1868,13 @@ begin
             -- Zero-extends Rm from word -> Rn
                     -- Y = Rm
               --    ex.ybus_sel <= SEL_REG;
-              --    ex.regnum_y <= '0' & op.code(7 downto 4);
+              --    ex.regnum_y <= rm;
                     -- Z = (uint16) Y
                     ex_stall.zbus_sel <= SEL_MANIP;
                     ex.alumanip <= EXTEND_UWORD;
                     -- Rn = Z
                     ex_stall.wrreg_z <= '1';
-              --    ex.regnum_z <= '0' & op.code(11 downto 8);
+              --    ex.regnum_z <= rn;
                     id.incpc <= '1';
                     dispatch <= '1';
                     id.if_issue <= '1';
@@ -1873,11 +1884,11 @@ begin
             -- Rm->Rn
                     -- Y = Rm
               --    ex.ybus_sel <= SEL_REG;
-              --    ex.regnum_y <= '0' & op.code(7 downto 4);
+              --    ex.regnum_y <= rm;
                     ex_stall.zbus_sel <= SEL_YBUS;
                     -- Rn = Z
                     ex_stall.wrreg_z <= '1';
-              --    ex.regnum_z <= '0' & op.code(11 downto 8);
+              --    ex.regnum_z <= rn;
                     id.incpc <= '1';
                     dispatch <= '1';
                     id.if_issue <= '1';
@@ -1887,10 +1898,10 @@ begin
             -- RnxRm->MACL
                     -- X = Rn
               --    ex.xbus_sel <= SEL_REG;
-              --    ex.regnum_x <= '0' & op.code(11 downto 8);
+              --    ex.regnum_x <= rn;
                     -- Y = Rm
               --    ex.ybus_sel <= SEL_REG;
-              --    ex.regnum_y <= '0' & op.code(7 downto 4);
+              --    ex.regnum_y <= rm;
               --    ex_stall.macsel1 <= SEL_XBUS;
                     ex_stall.mulcom1 <= '1';
               --    ex_stall.macsel2 <= SEL_YBUS;
@@ -1906,10 +1917,10 @@ begin
             -- Signed, Rn x Rm -> MAC
                     -- X = Rn
               --    ex.xbus_sel <= SEL_REG;
-              --    ex.regnum_x <= '0' & op.code(11 downto 8);
+              --    ex.regnum_x <= rn;
                     -- Y = Rm
               --    ex.ybus_sel <= SEL_REG;
-              --    ex.regnum_y <= '0' & op.code(7 downto 4);
+              --    ex.regnum_y <= rm;
               --    ex_stall.macsel1 <= SEL_XBUS;
                     ex_stall.mulcom1 <= '1';
               --    ex_stall.macsel2 <= SEL_YBUS;
@@ -1925,10 +1936,10 @@ begin
             -- Unsigned, Rn x Rm -> MAC
                     -- X = Rn
               --    ex.xbus_sel <= SEL_REG;
-              --    ex.regnum_x <= '0' & op.code(11 downto 8);
+              --    ex.regnum_x <= rn;
                     -- Y = Rm
               --    ex.ybus_sel <= SEL_REG;
-              --    ex.regnum_y <= '0' & op.code(7 downto 4);
+              --    ex.regnum_y <= rm;
               --    ex_stall.macsel1 <= SEL_XBUS;
                     ex_stall.mulcom1 <= '1';
               --    ex_stall.macsel2 <= SEL_YBUS;
@@ -1946,14 +1957,14 @@ begin
                     ex.xbus_sel <= SEL_IMM;
                     -- Y = Rm
               --    ex.ybus_sel <= SEL_REG;
-              --    ex.regnum_y <= '0' & op.code(7 downto 4);
+              --    ex.regnum_y <= rm;
                     -- Z = X - Y
               --    ex_stall.zbus_sel <= SEL_ARITH;
                     ex.arith_func <= SUB;
                     imm_enum <= IMM_ZERO;
                     -- Rn = Z
                     ex_stall.wrreg_z <= '1';
-              --    ex.regnum_z <= '0' & op.code(11 downto 8);
+              --    ex.regnum_z <= rn;
                     id.incpc <= '1';
                     dispatch <= '1';
                     id.if_issue <= '1';
@@ -1965,7 +1976,7 @@ begin
                     ex.xbus_sel <= SEL_IMM;
                     -- Y = Rm
               --    ex.ybus_sel <= SEL_REG;
-              --    ex.regnum_y <= '0' & op.code(7 downto 4);
+              --    ex.regnum_y <= rm;
                     -- Z = X - Y
               --    ex_stall.zbus_sel <= SEL_ARITH;
                     ex.arith_func <= SUB;
@@ -1975,7 +1986,7 @@ begin
                     imm_enum <= IMM_ZERO;
                     -- Rn = Z
                     ex_stall.wrreg_z <= '1';
-              --    ex.regnum_z <= '0' & op.code(11 downto 8);
+              --    ex.regnum_z <= rn;
                     id.incpc <= '1';
                     dispatch <= '1';
                     id.if_issue <= '1';
@@ -1987,14 +1998,14 @@ begin
                     ex.xbus_sel <= SEL_IMM;
                     -- Y = Rm
               --    ex.ybus_sel <= SEL_REG;
-              --    ex.regnum_y <= '0' & op.code(7 downto 4);
+              --    ex.regnum_y <= rm;
                     -- Z = X not Y
                     ex_stall.zbus_sel <= SEL_LOGIC;
                     ex.logic_func <= LOGIC_NOT;
                     imm_enum <= IMM_ZERO;
                     -- Rn = Z
                     ex_stall.wrreg_z <= '1';
-              --    ex.regnum_z <= '0' & op.code(11 downto 8);
+              --    ex.regnum_z <= rn;
                     id.incpc <= '1';
                     dispatch <= '1';
                     id.if_issue <= '1';
@@ -2004,16 +2015,16 @@ begin
             -- Rn | Rm-> Rn
                     -- X = Rn
               --    ex.xbus_sel <= SEL_REG;
-              --    ex.regnum_x <= '0' & op.code(11 downto 8);
+              --    ex.regnum_x <= rn;
                     -- Y = Rm
               --    ex.ybus_sel <= SEL_REG;
-              --    ex.regnum_y <= '0' & op.code(7 downto 4);
+              --    ex.regnum_y <= rm;
                     -- Z = X or Y
                     ex_stall.zbus_sel <= SEL_LOGIC;
                     ex.logic_func <= LOGIC_OR;
                     -- Rn = Z
                     ex_stall.wrreg_z <= '1';
-              --    ex.regnum_z <= '0' & op.code(11 downto 8);
+              --    ex.regnum_z <= rn;
                     id.incpc <= '1';
                     dispatch <= '1';
                     id.if_issue <= '1';
@@ -2023,16 +2034,16 @@ begin
             -- Rn - Rm ->Rn
                     -- X = Rn
               --    ex.xbus_sel <= SEL_REG;
-              --    ex.regnum_x <= '0' & op.code(11 downto 8);
+              --    ex.regnum_x <= rn;
                     -- Y = Rm
               --    ex.ybus_sel <= SEL_REG;
-              --    ex.regnum_y <= '0' & op.code(7 downto 4);
+              --    ex.regnum_y <= rm;
                     -- Z = X - Y
               --    ex_stall.zbus_sel <= SEL_ARITH;
                     ex.arith_func <= SUB;
                     -- Rn = Z
                     ex_stall.wrreg_z <= '1';
-              --    ex.regnum_z <= '0' & op.code(11 downto 8);
+              --    ex.regnum_z <= rn;
                     id.incpc <= '1';
                     dispatch <= '1';
                     id.if_issue <= '1';
@@ -2042,10 +2053,10 @@ begin
             -- Rn - Rm-T ->Rn, borrow -> T
                     -- X = Rn
               --    ex.xbus_sel <= SEL_REG;
-              --    ex.regnum_x <= '0' & op.code(11 downto 8);
+              --    ex.regnum_x <= rn;
                     -- Y = Rm
               --    ex.ybus_sel <= SEL_REG;
-              --    ex.regnum_y <= '0' & op.code(7 downto 4);
+              --    ex.regnum_y <= rm;
                     -- Z = X - Y
               --    ex_stall.zbus_sel <= SEL_ARITH;
                     ex.arith_func <= SUB;
@@ -2054,7 +2065,7 @@ begin
                     ex_stall.t_sel <= SEL_CARRY;
                     -- Rn = Z
                     ex_stall.wrreg_z <= '1';
-              --    ex.regnum_z <= '0' & op.code(11 downto 8);
+              --    ex.regnum_z <= rn;
                     id.incpc <= '1';
                     dispatch <= '1';
                     id.if_issue <= '1';
@@ -2064,10 +2075,10 @@ begin
             -- Rn - Rm -> Rn, underflow ->T
                     -- X = Rn
               --    ex.xbus_sel <= SEL_REG;
-              --    ex.regnum_x <= '0' & op.code(11 downto 8);
+              --    ex.regnum_x <= rn;
                     -- Y = Rm
               --    ex.ybus_sel <= SEL_REG;
-              --    ex.regnum_y <= '0' & op.code(7 downto 4);
+              --    ex.regnum_y <= rm;
                     -- Z = X - Y
               --    ex_stall.zbus_sel <= SEL_ARITH;
                     ex.arith_sr_func <= OVERUNDERFLOW;
@@ -2075,7 +2086,7 @@ begin
                     ex_stall.sr_sel <= SEL_ARITH;
                     -- Rn = Z
                     ex_stall.wrreg_z <= '1';
-              --    ex.regnum_z <= '0' & op.code(11 downto 8);
+              --    ex.regnum_z <= rn;
                     id.incpc <= '1';
                     dispatch <= '1';
                     id.if_issue <= '1';
@@ -2085,13 +2096,13 @@ begin
             -- Rm -> Swap upper and lower halves of lower 2 bytes -> Rn
                     -- Y = Rm
               --    ex.ybus_sel <= SEL_REG;
-              --    ex.regnum_y <= '0' & op.code(7 downto 4);
+              --    ex.regnum_y <= rm;
                     -- Z = X [:swap :b] Y
                     ex_stall.zbus_sel <= SEL_MANIP;
               --    ex.alumanip <= SWAP_BYTE;
                     -- Rn = Z
                     ex_stall.wrreg_z <= '1';
-              --    ex.regnum_z <= '0' & op.code(11 downto 8);
+              --    ex.regnum_z <= rn;
                     id.incpc <= '1';
                     dispatch <= '1';
                     id.if_issue <= '1';
@@ -2101,13 +2112,13 @@ begin
             -- Rm -> Swap upper and lower word -> Rn
                     -- Y = Rm
               --    ex.ybus_sel <= SEL_REG;
-              --    ex.regnum_y <= '0' & op.code(7 downto 4);
+              --    ex.regnum_y <= rm;
                     -- Z = X [:swap :w] Y
                     ex_stall.zbus_sel <= SEL_MANIP;
                     ex.alumanip <= SWAP_WORD;
                     -- Rn = Z
                     ex_stall.wrreg_z <= '1';
-              --    ex.regnum_z <= '0' & op.code(11 downto 8);
+              --    ex.regnum_z <= rn;
                     id.incpc <= '1';
                     dispatch <= '1';
                     id.if_issue <= '1';
@@ -2117,10 +2128,10 @@ begin
             -- Rn & Rm, when result is 0, 1 -> T
                     -- X = Rn
               --    ex.xbus_sel <= SEL_REG;
-              --    ex.regnum_x <= '0' & op.code(11 downto 8);
+              --    ex.regnum_x <= rn;
                     -- Y = Rm
               --    ex.ybus_sel <= SEL_REG;
-              --    ex.regnum_y <= '0' & op.code(7 downto 4);
+              --    ex.regnum_y <= rm;
               --    ex.logic_sr_func <= ZERO;
                     ex.logic_func <= LOGIC_AND;
                     ex_stall.sr_sel <= SEL_LOGIC;
@@ -2133,16 +2144,16 @@ begin
             -- Rn ^ Rm-> Rn
                     -- X = Rn
               --    ex.xbus_sel <= SEL_REG;
-              --    ex.regnum_x <= '0' & op.code(11 downto 8);
+              --    ex.regnum_x <= rn;
                     -- Y = Rm
               --    ex.ybus_sel <= SEL_REG;
-              --    ex.regnum_y <= '0' & op.code(7 downto 4);
+              --    ex.regnum_y <= rm;
                     -- Z = X xor Y
                     ex_stall.zbus_sel <= SEL_LOGIC;
               --    ex.logic_func <= LOGIC_XOR;
                     -- Rn = Z
                     ex_stall.wrreg_z <= '1';
-              --    ex.regnum_z <= '0' & op.code(11 downto 8);
+              --    ex.regnum_z <= rn;
                     id.incpc <= '1';
                     dispatch <= '1';
                     id.if_issue <= '1';
@@ -2152,16 +2163,16 @@ begin
             -- Centre 32 bits of Rm and Rn -> Rn
                     -- X = Rn
               --    ex.xbus_sel <= SEL_REG;
-              --    ex.regnum_x <= '0' & op.code(11 downto 8);
+              --    ex.regnum_x <= rn;
                     -- Y = Rm
               --    ex.ybus_sel <= SEL_REG;
-              --    ex.regnum_y <= '0' & op.code(7 downto 4);
+              --    ex.regnum_y <= rm;
                     -- Z = X :xtract Y
                     ex_stall.zbus_sel <= SEL_MANIP;
                     ex.alumanip <= EXTRACT;
                     -- Rn = Z
                     ex_stall.wrreg_z <= '1';
-              --    ex.regnum_z <= '0' & op.code(11 downto 8);
+              --    ex.regnum_z <= rn;
                     id.incpc <= '1';
                     dispatch <= '1';
                     id.if_issue <= '1';
@@ -2171,16 +2182,16 @@ begin
             -- 
                     -- X = Rn
               --    ex.xbus_sel <= SEL_REG;
-              --    ex.regnum_x <= '0' & op.code(11 downto 8);
+              --    ex.regnum_x <= rn;
                     -- Y = Rm
               --    ex.ybus_sel <= SEL_REG;
-              --    ex.regnum_y <= '0' & op.code(7 downto 4);
+              --    ex.regnum_y <= rm;
                     -- Z = X shift arith Y
                     ex_stall.zbus_sel <= SEL_SHIFT;
                     ex_stall.shiftfunc <= ARITH;
                     -- Rn = Z
                     ex_stall.wrreg_z <= '1';
-              --    ex.regnum_z <= '0' & op.code(11 downto 8);
+              --    ex.regnum_z <= rn;
                     id.incpc <= '1';
                     dispatch <= '1';
                     id.if_issue <= '1';
@@ -2190,16 +2201,16 @@ begin
             -- 
                     -- X = Rn
               --    ex.xbus_sel <= SEL_REG;
-              --    ex.regnum_x <= '0' & op.code(11 downto 8);
+              --    ex.regnum_x <= rn;
                     -- Y = Rm
               --    ex.ybus_sel <= SEL_REG;
-              --    ex.regnum_y <= '0' & op.code(7 downto 4);
+              --    ex.regnum_y <= rm;
                     -- Z = X shift logic Y
                     ex_stall.zbus_sel <= SEL_SHIFT;
               --    ex_stall.shiftfunc <= LOGIC;
                     -- Rn = Z
                     ex_stall.wrreg_z <= '1';
-              --    ex.regnum_z <= '0' & op.code(11 downto 8);
+              --    ex.regnum_z <= rn;
                     id.incpc <= '1';
                     dispatch <= '1';
                     id.if_issue <= '1';
@@ -2212,7 +2223,7 @@ begin
                 when x"0" =>
                     -- X = Rn
               --    ex.xbus_sel <= SEL_REG;
-              --    ex.regnum_x <= '0' & op.code(11 downto 8);
+              --    ex.regnum_x <= rn;
                     -- Z = X + 4
                     ex.aluiny_sel <= SEL_IMM;
               --    ex_stall.zbus_sel <= SEL_ARITH;
@@ -2227,12 +2238,12 @@ begin
               --    ex.mem_size <= LONG;
                     -- Rn = Z
                     ex_stall.wrreg_z <= '1';
-              --    ex.regnum_z <= '0' & op.code(11 downto 8);
+              --    ex.regnum_z <= rn;
 
                 when x"1" =>
                     -- X = Rm
               --    ex.xbus_sel <= SEL_REG;
-                    ex.regnum_x <= '0' & op.code(7 downto 4);
+                    ex.regnum_x <= rm;
                     -- Z = X + 4
                     ex.aluiny_sel <= SEL_IMM;
               --    ex_stall.zbus_sel <= SEL_ARITH;
@@ -2249,7 +2260,7 @@ begin
               --    ex.mem_size <= LONG;
                     -- Rm = Z
                     ex_stall.wrreg_z <= '1';
-                    ex.regnum_z <= '0' & op.code(7 downto 4);
+                    ex.regnum_z <= rm;
 
                 when x"2" =>
                     id.incpc <= '1';
@@ -2266,7 +2277,7 @@ begin
                 when x"0" =>
                     -- X = Rn
               --    ex.xbus_sel <= SEL_REG;
-              --    ex.regnum_x <= '0' & op.code(11 downto 8);
+              --    ex.regnum_x <= rn;
                     -- Z = X + 2
                     ex.aluiny_sel <= SEL_IMM;
               --    ex_stall.zbus_sel <= SEL_ARITH;
@@ -2281,12 +2292,12 @@ begin
                     ex.mem_size <= WORD;
                     -- Rn = Z
                     ex_stall.wrreg_z <= '1';
-              --    ex.regnum_z <= '0' & op.code(11 downto 8);
+              --    ex.regnum_z <= rn;
 
                 when x"1" =>
                     -- X = Rm
               --    ex.xbus_sel <= SEL_REG;
-                    ex.regnum_x <= '0' & op.code(7 downto 4);
+                    ex.regnum_x <= rm;
                     -- Z = X + 2
                     ex.aluiny_sel <= SEL_IMM;
               --    ex_stall.zbus_sel <= SEL_ARITH;
@@ -2303,7 +2314,7 @@ begin
                     ex.mem_size <= WORD;
                     -- Rm = Z
                     ex_stall.wrreg_z <= '1';
-                    ex.regnum_z <= '0' & op.code(7 downto 4);
+                    ex.regnum_z <= rm;
                     id.incpc <= '1';
                     dispatch <= '1';
                     id.if_issue <= '1';
@@ -2318,7 +2329,7 @@ begin
             -- (disp + Rm) -> sign extension -> R0
                     -- X = Rm
               --    ex.xbus_sel <= SEL_REG;
-                    ex.regnum_x <= '0' & op.code(7 downto 4);
+                    ex.regnum_x <= rm;
                     -- Z = X + [:u 4 0]
                     ex.aluiny_sel <= SEL_IMM;
               --    ex_stall.zbus_sel <= SEL_ARITH;
@@ -2341,7 +2352,7 @@ begin
             -- (disp x2 +Rm)-> sign extension -> R0
                     -- X = Rm
               --    ex.xbus_sel <= SEL_REG;
-                    ex.regnum_x <= '0' & op.code(7 downto 4);
+                    ex.regnum_x <= rm;
                     -- Z = X + [:u 4 1]
                     ex.aluiny_sel <= SEL_IMM;
               --    ex_stall.zbus_sel <= SEL_ARITH;
@@ -2364,7 +2375,7 @@ begin
             -- R0 -> (disp + Rn)
                     -- X = Rn
               --    ex.xbus_sel <= SEL_REG;
-                    ex.regnum_x <= '0' & op.code(7 downto 4);
+                    ex.regnum_x <= rm;
                     -- Y = R0
               --    ex.ybus_sel <= SEL_REG;
                     ex.regnum_y <= "00000";
@@ -2388,7 +2399,7 @@ begin
             -- R0 -> (disp x 2+ Rn)
                     -- X = Rn
               --    ex.xbus_sel <= SEL_REG;
-                    ex.regnum_x <= '0' & op.code(7 downto 4);
+                    ex.regnum_x <= rm;
                     -- Y = R0
               --    ex.ybus_sel <= SEL_REG;
                     ex.regnum_y <= "00000";
@@ -2412,10 +2423,10 @@ begin
             -- Rm -> (disp x 4 + Rn)
                     -- X = Rn
               --    ex.xbus_sel <= SEL_REG;
-              --    ex.regnum_x <= '0' & op.code(11 downto 8);
+              --    ex.regnum_x <= rn;
                     -- Y = Rm
               --    ex.ybus_sel <= SEL_REG;
-              --    ex.regnum_y <= '0' & op.code(7 downto 4);
+              --    ex.regnum_y <= rm;
                     -- Z = X + [:u 4 2]
                     ex.aluiny_sel <= SEL_IMM;
               --    ex_stall.zbus_sel <= SEL_ARITH;
@@ -2436,7 +2447,7 @@ begin
             -- (disp x 4+ Rm) -> Rn
                     -- X = Rm
               --    ex.xbus_sel <= SEL_REG;
-                    ex.regnum_x <= '0' & op.code(7 downto 4);
+                    ex.regnum_x <= rm;
                     -- Z = X + [:u 4 2]
                     ex.aluiny_sel <= SEL_IMM;
               --    ex_stall.zbus_sel <= SEL_ARITH;
@@ -2449,7 +2460,7 @@ begin
               --    ex.mem_size <= LONG;
                     -- Rn = W
                     wb_stall.wrreg_w <= '1';
-              --    wb.regnum_w <= '0' & op.code(11 downto 8);
+              --    wb.regnum_w <= rn;
                     id.incpc <= '1';
                     dispatch <= '1';
                     id.if_issue <= '1';
@@ -2646,7 +2657,7 @@ begin
                     ex.mem_size <= WORD;
                     -- Rn = W
                     wb_stall.wrreg_w <= '1';
-              --    wb.regnum_w <= '0' & op.code(11 downto 8);
+              --    wb.regnum_w <= rn;
                     id.incpc <= '1';
                     dispatch <= '1';
                     id.if_issue <= '1';
@@ -3053,7 +3064,7 @@ begin
             -- Rn + imm -> Rn
                     -- X = Rn
               --    ex.xbus_sel <= SEL_REG;
-              --    ex.regnum_x <= '0' & op.code(11 downto 8);
+              --    ex.regnum_x <= rn;
                     -- Y = CONST
                     ex.ybus_sel <= SEL_IMM;
                     -- Z = X + Y
@@ -3062,7 +3073,7 @@ begin
                     imm_enum <= IMM_S_8_0;
                     -- Rn = Z
                     ex_stall.wrreg_z <= '1';
-              --    ex.regnum_z <= '0' & op.code(11 downto 8);
+              --    ex.regnum_z <= rn;
                     id.incpc <= '1';
                     dispatch <= '1';
                     id.if_issue <= '1';
@@ -3076,7 +3087,7 @@ begin
                     imm_enum <= IMM_S_8_0;
                     -- Rn = Z
                     ex_stall.wrreg_z <= '1';
-              --    ex.regnum_z <= '0' & op.code(11 downto 8);
+              --    ex.regnum_z <= rn;
                     id.incpc <= '1';
                     dispatch <= '1';
                     id.if_issue <= '1';
