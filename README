@@ -1,0 +1,20 @@
+# J-core j1 for Lattice ice40 FPGA, with GHDL build/test script
+
+This is a stripped-down build of https://j-core.org j2 processor which
+is instruction set compatibile with the full j2 but has no I/O devices,
+DRAM controller or SMP support.
+
+Install https://github.com/ghdl/ghdl and run ./ghdl_lattice.sh to build and
+simulate this CPU running a test rom. (If it prints the C0 line all instruction
+tests passed.) See the testrom/ directory for ROM source, for bare metal
+elf toolchain build instructions see:
+  http://lists.j-core.org/pipermail/j-core/2019-October/000867.html
+
+A working ICE40 UltraPlus5k bitstream was produced from this source via
+Lattice's Synplify+IceCube2 toolchain. It's also been tested with GHDL, NVC,
+Xilinx WebPack ISE, and Vivado.
+
+We are working to get a fully open source VHDL toolchain (built from
+ghdl+ghdlsynth+yosys+abc) creating bitstreams from that (it doesn't yet).
+For build instructions for that see:
+  http://lists.j-core.org/pipermail/j-core/2019-November/000868.html
