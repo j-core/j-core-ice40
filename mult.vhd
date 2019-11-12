@@ -16,7 +16,7 @@ architecture stru of mult is
   signal this_r : mult_reg_t := MULT_RESET;
 
   begin
-  mult : process(this_r, slot, a)
+  mult_p : process(this_r, slot, a)
   variable this : mult_reg_t;
   variable aa : std_logic_vector(31 downto 0);
   variable ah : std_logic_vector(30 downto 0);

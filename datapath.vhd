@@ -78,15 +78,15 @@ architecture stru of datapath is
         return r;
     end to_sr;
 
-    function to_slv(sr : sr_t)
+    function to_slv(from : sr_t)
         return std_logic_vector is
         variable r : std_logic_vector(31 downto 0) := (others => '0');
     begin
-        r(M) := sr.m;
-        r(Q) := sr.q;
-        r(I3 downto I0) := sr.int_mask;
-        r(S) := sr.s;
-        r(T) := sr.t;
+        r(M) := from.m;
+        r(Q) := from.q;
+        r(I3 downto I0) := from.int_mask;
+        r(S) := from.s;
+        r(T) := from.t;
         return r;
     end to_slv;
 
@@ -98,18 +98,18 @@ architecture stru of datapath is
         return r;
     end to_slv;
 
-    function to_data_o(mem : mem_ctrl_t; addr : std_logic_vector(31 downto 0);
+    function to_data_o(memc : mem_ctrl_t; addr : std_logic_vector(31 downto 0);
                        data : std_logic_vector(31 downto 0))
         return cpu_data_o_t is variable r : cpu_data_o_t := NULL_DATA_O;
     begin
-        if mem.issue = '1' then
+        if memc.issue = '1' then
             r.en := '1';
-            r.wr := mem.wr;
-            r.rd := not mem.wr;
+            r.wr := memc.wr;
+            r.rd := not memc.wr;
             r.a := addr;
             -- for writes, prepare we and d signals
-            if mem.wr = '1' then
-                case mem.size is
+            if memc.wr = '1' then
+                case memc.size is
                     when LONG =>
                         r.d := data; r.we := "1111";
                     when WORD =>
@@ -133,13 +133,13 @@ architecture stru of datapath is
     end to_data_o;
 
     -- default to jump=1 unless caller knows address is incremented PC
-    function to_inst_o(instr : instr_ctrl_t;
+    function to_inst_o(instrc : instr_ctrl_t;
                        addr : std_logic_vector(31 downto 0);
                        jp : std_logic := '1')
         return cpu_instruction_o_t is
               variable r : cpu_instruction_o_t := NULL_INST_O;
     begin
-        if instr.issue = '1' then
+        if instrc.issue = '1' then
             r.en := '1';
             r.a := addr(31 downto 1);
             r.jp := jp;
@@ -235,7 +235,7 @@ begin
 
     ibit <= sr.int_mask;
 
-    datapath : process(this_r,pc_ctrl,wbus,zbus,sr_ctrl, xbus, ybus, mac,mem,
+    datapath_p : process(this_r,pc_ctrl,wbus,zbus,sr_ctrl, xbus, ybus, mac,mem,
                        instr, db_i, inst_i, debug, debug_i,reg_wr_data_o,
                        logic_out, arith_out, arith_func, func, sfto)
         variable this : datapath_reg_t;
