@@ -71,7 +71,30 @@ type datapath_reg_t is record
    ybus_override : ybus_val_pipeline_t;
 end record;
 
-constant DATAPATH_RESET : datapath_reg_t := (pc => (others => '0'), sr => (int_mask => "1111", others => '0'), mac_s => '0', data_o_size => BYTE, data_o_lock => '0', data_o => NULL_DATA_O, inst_o => NULL_INST_O, pc_inc => (others => '0'), if_dr => (others => '0'), if_dr_next => (others => '0'), illegal_delay_slot => '0', illegal_instr => '0', if_en => '0', m_dr => (others => '0'), m_dr_next => (others => '0'), m_en => '0', slot => '1', enter_debug => (others => '0'), old_debug => '0', stop_pc_inc => '0', debug_state => RUN, debug_o => (ack => '0', d => (others => '0'), rdy => '0'), ybus_override => (others => BUS_VAL_RESET));
+constant DATAPATH_RESET : datapath_reg_t := (
+  pc => (others => '0'),
+  sr => (int_mask => "1111", others => '0'),
+  mac_s => '0',
+  data_o_size => BYTE,
+  data_o_lock => '0',
+  data_o => NULL_DATA_O,
+  inst_o => NULL_INST_O,
+  pc_inc => (others => '0'),
+  if_dr => (others => '0'),
+  if_dr_next => (others => '0'),
+  illegal_delay_slot => '0',
+  illegal_instr => '0',
+  if_en => '0',
+  m_dr => (others => '0'),
+  m_dr_next => (others => '0'),
+  m_en => '0', slot => '1',
+  enter_debug => (others => '0'),
+  old_debug => '0',
+  stop_pc_inc => '0',
+  debug_state => RUN,
+  debug_o => (ack => '0', d => (others => '0'), rdy => '0'),
+  ybus_override => (others => BUS_VAL_RESET)
+);
 
 subtype regnum_t is std_logic_vector(4 downto 0);
 component register_file is
@@ -102,46 +125,39 @@ end component register_file;
 -- Adds or subtracts a and b with carry-in and carry-out. The carry-out
 -- (borrow for subtraction) bit is in the left-most bit of the result, which is
 -- one bit wider than the inputs
-function arith_unit(
-  a : std_logic_vector;
-  b : std_logic_vector;
-  func : arith_func_t;
-  ci : std_logic)
-  return std_logic_vector;
+function arith_unit( a, b : std_logic_vector; func : arith_func_t;
+                     ci : std_logic)
+return std_logic_vector;
 
 -- based on the input and output of the arith_unit, update the SR register
 -- flags for different operations
-function arith_update_sr(
-  sr_in : sr_t;
-  a_msb : std_logic;
-  b_msb : std_logic;
-  value : std_logic_vector;
-  co_or_borrow : std_logic;
-  arithfunc : arith_func_t;
-  func : arith_sr_func_t)
-  return sr_t;
+function arith_update_sr( sr_in : sr_t; a_msb : std_logic; b_msb : std_logic;
+                          value : std_logic_vector; co_or_borrow : std_logic;
+                          arithfunc : arith_func_t;
+                          func : arith_sr_func_t)
+return sr_t;
 
 -- Returns either the bitwise AND, OR or XOR of a and b or the NOT of b
-function logic_unit(
-  a : std_logic_vector;
-  b : std_logic_vector;
-  func : logic_func_t)
-  return std_logic_vector;
+function logic_unit( a : std_logic_vector; b : std_logic_vector;
+                     func : logic_func_t)
+return std_logic_vector;
 
 -- based on the output of the logic_unit, update the SR register flags for
 -- different operations
-function logic_update_sr(
-  sr_in : sr_t;
-  value : std_logic_vector;
-  func : logic_sr_func_t;
-  constant byte_width : integer := 8)
-  return sr_t;
+function logic_update_sr( sr_in : sr_t; value : std_logic_vector;
+                          func : logic_sr_func_t;
+                          constant byte_width : integer := 8)
+return sr_t;
 
-function is_zero(a : std_logic_vector) return std_logic;
+function is_zero(a : std_logic_vector)
+return std_logic;
 
-function bshifter(a,b : std_logic_vector; c : std_logic; ops : shiftfunc_t) return std_logic_vector;
+function bshifter(a,b : std_logic_vector; c : std_logic; ops : shiftfunc_t)
+return std_logic_vector;
+
 function manip(x, y : std_logic_vector(31 downto 0); func : alumanip_t)
-  return std_logic_vector;
+return std_logic_vector;
+
 end package;
 
 package body cpu2j0_components_pack is
@@ -194,8 +210,7 @@ begin
 end;
 
 function arith_unit(
-  a : std_logic_vector;
-  b : std_logic_vector;
+  a, b : std_logic_vector;
   func : arith_func_t;
   ci : std_logic)
 return std_logic_vector is
@@ -375,12 +390,12 @@ function calf_fcn(b : unsigned) return std_logic_vector is
    return f;
 end function;
 
-function calp_fcn(f : std_logic_vector; rotate, left : std_logic) return std_logic_vector is
+function calp_fcn(f : std_logic_vector; rot, left : std_logic) return std_logic_vector is
    variable p : std_logic_vector(f'range);
    begin
 
    for i in f'range loop
-      p(i) := (f(i) xor left) or rotate;
+      p(i) := (f(i) xor left) or rot;
    end loop;
    return p;
 end function;
@@ -410,7 +425,11 @@ function caly_fcn(y, p : std_logic_vector; ops : shiftfunc_t; left, c, a : std_l
    return t;
 end function;
 
-function bshifter(a,b : std_logic_vector; c : std_logic; ops : shiftfunc_t) return std_logic_vector is
+-- Barrel shifter implementation for efficient logic, as per:
+-- http://www.princeton.edu/~rblee/ELE572Papers/Fall04Readings/Shifter_Schulte.pdf
+
+function bshifter(a,b : std_logic_vector; c : std_logic; ops : shiftfunc_t)
+return std_logic_vector is
    variable left, rot : std_logic := '0';
    constant a_left : integer := a'length - 1;
    constant b_left : integer := b'length - 1;
