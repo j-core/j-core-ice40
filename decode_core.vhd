@@ -49,7 +49,6 @@ entity decode_core is
 end;
 
 architecture arch of decode_core is
-
   signal mac_stall : std_logic;
   signal reg_conf : std_logic;
   signal next_op : operation_t;
@@ -63,18 +62,18 @@ architecture arch of decode_core is
 
   function system_op (code : std_logic_vector(15 downto 0); instr : system_instr_t)
   return operation_t is
-    variable op : operation_t;
+    variable vop : operation_t;
   begin
-    op.plane := SYSTEM_INSTR;
-    op.code := code;
+    vop.plane := SYSTEM_INSTR;
+    vop.code := code;
     if decode_type = MICROCODE then
       -- Microcode-based decoder requires an address into the ROM that is different
       -- for each system instruction
-      op.addr := system_instr_rom_addrs(instr);
+      vop.addr := system_instr_rom_addrs(instr);
     else
-      op.addr := x"00";
+      vop.addr := x"00";
     end if;
-    return op;
+    return vop;
   end;
 
   function system_op (instr : system_instr_t)
@@ -95,22 +94,22 @@ architecture arch of decode_core is
 
   function normal_op (instr : std_logic_vector(15 downto 0))
   return operation_t is
-    variable op : operation_t;
+    variable vop : operation_t;
   begin
-    op.plane := NORMAL_INSTR;
-    op.code := instr;
+    vop.plane := NORMAL_INSTR;
+    vop.code := instr;
     if decode_type = MICROCODE then
       -- Microcode-based decoder requires a first stage decode from the instruction
       -- to the address in the ROM where the microcode starts for the instruction
-      op.addr := predecode_rom_addr(instr);
+      vop.addr := predecode_rom_addr(instr);
     else
-      op.addr := x"00";
+      vop.addr := x"00";
     end if;
-    return op;
+    return vop;
   end;
 begin
 
-  decode_core : process(this_r,slot,next_id_stall_a,ilevel_cap,dispatch,maskint_next,delay_jump,event_i,next_op)
+  decode_core_slot : process(this_r,slot,next_id_stall_a,ilevel_cap,dispatch,maskint_next,delay_jump,event_i,next_op)
     variable this : decode_core_reg_t;
   begin
      this := this_r;
