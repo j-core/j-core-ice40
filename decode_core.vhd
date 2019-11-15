@@ -3,6 +3,7 @@ use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 use work.decode_pack.all;
 use work.cpu2j0_pack.all;
+use work.predecode_pack.all;
 
 entity decode_core is
   generic (
