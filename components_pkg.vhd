@@ -6,10 +6,8 @@ use work.cpu2j0_pack.all;
 
 package cpu2j0_components_pack is
 
-constant bits_exp : natural := 5;
-constant bits     : natural := 2**bits_exp;
-
 type arith_func_t is (ADD, SUB);
+-- when to set the t bit. UGRTER_EQ is "unsigned greater or equal"
 type arith_sr_func_t is (ZERO,
                          OVERUNDERFLOW,
                          UGRTER_EQ, SGRTER_EQ,
@@ -17,12 +15,15 @@ type arith_sr_func_t is (ZERO,
                          DIV0S, DIV1);
 type logic_func_t is (LOGIC_NOT, LOGIC_AND, LOGIC_OR, LOGIC_XOR);
 type logic_sr_func_t is (ZERO, BYTE_EQ);
+-- logic: don't sign extend. arith: shift right duplicates sign bit
+-- rotate: rotate leftmost/rightmost bit around, rotc: rotate through carry bit
 type shiftfunc_t is (LOGIC, ARITH, ROTATE, ROTC);
+-- endianness and sign extend, extract = unaligned access, thing for tas.b
 type alumanip_t is (SWAP_BYTE, SWAP_WORD, EXTEND_UBYTE, EXTEND_UWORD, EXTEND_SBYTE, EXTEND_SWORD, EXTRACT, SET_BIT_7);
 
 type sr_t is record
-   t, s, q, m : std_logic;
-   int_mask : std_logic_vector(3 downto 0);
+   t, s, q, m : std_logic; -- test, sign for MAC, q&m are for divider
+   int_mask : std_logic_vector(3 downto 0); -- interrupt level (not bitmask)
 end record;
 
 -- if size becomes part of the bus, mem_size_t will move into cpu2j0_pack
@@ -32,15 +33,16 @@ type debug_state_t is ( RUN, READY, AWAIT_IF, AWAIT_BREAK );
 
 type bus_val_t is record
   en : std_logic;
-  d  : std_logic_vector(bits-1 downto 0);
+  d  : std_logic_vector(31 downto 0);
 end record;
 
 constant BUS_VAL_RESET : bus_val_t := ('0', (others => '0'));
 
+-- TODO
 type ybus_val_pipeline_t is array (2 downto 0) of bus_val_t;
 
 type datapath_reg_t is record
-   pc         : std_logic_vector(bits-1 downto 0);
+   pc         : std_logic_vector(31 downto 0);
    sr         : sr_t;
    mac_s      : std_logic;
    data_o_size: mem_size_t;
