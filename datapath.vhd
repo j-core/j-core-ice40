@@ -175,6 +175,7 @@ begin
     -- Multiplexors for the internal buses
     with buses.x_sel select xbus <= reg_x when SEL_REG, pc when SEL_PC,
          buses.imm_val when others;
+-- TODO this one line is 128 cells in ice40
     with buses.y_sel select ybus_temp <= reg_y when SEL_REG,
          pc when SEL_PC, mach when SEL_MACH, macl when SEL_MACL,
          to_slv(sr) when SEL_SR, buses.imm_val when others;

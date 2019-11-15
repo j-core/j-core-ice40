@@ -7,6 +7,7 @@
 -- ******************************************************************
 -- ******************************************************************
 -- ******************************************************************
+use work.cpu2j0_pack.all;
 architecture rom of decode_table is
     signal line : std_logic_vector(71 downto 0);
     signal addr : std_logic_vector(7 downto 0);

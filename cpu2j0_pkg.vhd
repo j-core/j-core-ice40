@@ -70,6 +70,9 @@ package cpu2j0_pack is
       dbg  : std_logic;
    end record;
 
+   -- TODO create types_pkg.vhd?
+   type mem_size_t is (BYTE, WORD, LONG);
+
    component cpu is port (
       clk          : in  std_logic;
       rst          : in  std_logic;

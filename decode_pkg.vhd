@@ -108,6 +108,7 @@ package decode_pack is
             wrpr : std_logic;
             inc : std_logic;
         end record;
+    subtype regnum_t is std_logic_vector(4 downto 0);
     type reg_ctrl_t is
         record
             num_x : regnum_t;

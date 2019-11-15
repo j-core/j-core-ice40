@@ -7,6 +7,7 @@
 -- ******************************************************************
 -- ******************************************************************
 -- ******************************************************************
+use work.cpu2j0_pack.all;
 architecture reverse_logic of decode_table is
     signal mac_busy : mac_busy_t;
     signal imms_12_1 : std_logic_vector(31 downto 0);

@@ -9,7 +9,8 @@ rm -f *.o *.cf *.ghw
 echo Analyze...
 
 # General CPU plumbing, not architecture specific
-ghdl -a cpu2j0_pkg.vhd components_pkg.vhd mult_pkg.vhd decode_pkg.vhd decode_body.vhd datapath_pkg.vhd cpu.vhd decode.vhd decode_core.vhd decode_table.vhd datapath.vhd register_file_sync.vhd mult.vhd 
+ghdl -a cpu2j0_pkg.vhd components_pkg.vhd mult_pkg.vhd decode_pkg.vhd datapath_pkg.vhd
+ghdl -a decode_body.vhd cpu.vhd decode.vhd decode_core.vhd decode_table.vhd datapath.vhd register_file_sync.vhd mult.vhd 
 
 # Using the "staircase" version of the instruction decoder. The 2 other
 # versions started life as generated code from the same microcode spreadsheet,

@@ -53,6 +53,40 @@ package datapath_pack is
       illegal_instr : out std_logic);
    end component datapath;
 
+  type debug_state_t is ( RUN, READY, AWAIT_IF, AWAIT_BREAK );
+
+  type bus_val_t is record
+    en : std_logic;
+    d  : std_logic_vector(31 downto 0);
+  end record;
+
+  constant BUS_VAL_RESET : bus_val_t := ('0', (others => '0'));
+
+  component register_file is
+    generic ( ADDR_WIDTH : integer; NUM_REGS : integer; REG_WIDTH : integer );
+    port (
+      clk     : in  std_logic;
+      rst     : in  std_logic;
+      ce      : in  std_logic;
+
+      addr_ra : in  std_logic_vector(ADDR_WIDTH-1 downto 0);
+      dout_a  : out std_logic_vector(REG_WIDTH-1 downto 0);
+      addr_rb : in  std_logic_vector(ADDR_WIDTH-1 downto 0);
+      dout_b  : out std_logic_vector(REG_WIDTH-1 downto 0);
+      dout_0  : out std_logic_vector(REG_WIDTH-1 downto 0);
+
+      we_wb     : in  std_logic;
+      w_addr_wb : in  std_logic_vector(ADDR_WIDTH-1 downto 0);
+      din_wb    : in  std_logic_vector(REG_WIDTH-1 downto 0);
+
+      we_ex     : in  std_logic;
+      w_addr_ex : in  std_logic_vector(ADDR_WIDTH-1 downto 0);
+      din_ex    : in  std_logic_vector(REG_WIDTH-1 downto 0);
+
+      wr_data_o : out std_logic_vector(REG_WIDTH-1 downto 0)
+      );
+  end component register_file;
+
   type ybus_val_pipeline_t is array (2 downto 0) of bus_val_t;
 
   type datapath_reg_t is record
