@@ -38,66 +38,6 @@ end record;
 
 constant BUS_VAL_RESET : bus_val_t := ('0', (others => '0'));
 
--- TODO
-type ybus_val_pipeline_t is array (2 downto 0) of bus_val_t;
-
-type datapath_reg_t is record
-   pc         : std_logic_vector(31 downto 0);
-   sr         : sr_t;
-   mac_s      : std_logic;
-   data_o_size: mem_size_t;
-   data_o_lock: std_logic;
-   data_o     : cpu_data_o_t;
-   inst_o     : cpu_instruction_o_t;
-   pc_inc     : std_logic_vector(31 downto 0);
-   if_dr      : std_logic_vector(15 downto 0);
-   if_dr_next : std_logic_vector(15 downto 0);
-   illegal_delay_slot : std_logic;
-   illegal_instr : std_logic;
-   if_en      : std_logic;
-   m_dr       : std_logic_vector(31 downto 0);
-   m_dr_next  : std_logic_vector(31 downto 0);
-   m_en       : std_logic;
-   slot       : std_logic;
-   -- pipelines the enter_debug signal to delay it so that single stepping
-   -- instructions works and debug mode is re-entered after one instruction.
-   -- The length of this depends on how many microcode lines there are in the
-   -- break instruction after it has raised the debug control line.
-   enter_debug: std_logic_vector(3 downto 0);
-   old_debug : std_logic;
-   stop_pc_inc : std_logic;
-   debug_state: debug_state_t;
-   debug_o    : cpu_debug_o_t;
-   -- pipeline of inserted values to override y-bus. Values go in at 'left and
-   -- move downto 'right
-   ybus_override : ybus_val_pipeline_t;
-end record;
-
-constant DATAPATH_RESET : datapath_reg_t := (
-  pc => (others => '0'),
-  sr => (int_mask => "1111", others => '0'),
-  mac_s => '0',
-  data_o_size => BYTE,
-  data_o_lock => '0',
-  data_o => NULL_DATA_O,
-  inst_o => NULL_INST_O,
-  pc_inc => (others => '0'),
-  if_dr => (others => '0'),
-  if_dr_next => (others => '0'),
-  illegal_delay_slot => '0',
-  illegal_instr => '0',
-  if_en => '0',
-  m_dr => (others => '0'),
-  m_dr_next => (others => '0'),
-  m_en => '0', slot => '1',
-  enter_debug => (others => '0'),
-  old_debug => '0',
-  stop_pc_inc => '0',
-  debug_state => RUN,
-  debug_o => (ack => '0', d => (others => '0'), rdy => '0'),
-  ybus_override => (others => BUS_VAL_RESET)
-);
-
 subtype regnum_t is std_logic_vector(4 downto 0);
 component register_file is
   generic ( ADDR_WIDTH : integer; NUM_REGS : integer; REG_WIDTH : integer );
