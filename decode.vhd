@@ -127,6 +127,13 @@ begin
         variable pipe : pipeline_t;
     begin
         pipe := pipeline_r;
+        -- We have a classic risc 5 stage pipeline w/"harvard bus architecture"
+        --   instruction fetch, instruction decode, execute, memwait, writeback
+        -- The todo list for ex and wb comes out of id, and must follow the
+        -- instruction down the pipeline. The instruction moves from id to ex
+        -- 1 clock later, and advances to writeback 3 clocks after id.
+
+        -- Don't advance when entire pipeline is stalled
         if slot = '1' then
             pipe.wb3 := pipe.wb2;
             pipe.wb2 := pipe.wb1;
@@ -135,6 +142,7 @@ begin
             pipe.wb3_stall := pipe.wb2_stall;
             pipe.wb2_stall := pipe.wb1_stall;
             if next_id_stall = '1' then
+                -- insert a bubble (NOP) into the pipeline because ID says so
                 pipe.ex1_stall := STAGE_EX_STALL_RESET;
                 pipe.wb1_stall := STAGE_WB_STALL_RESET;
             else
