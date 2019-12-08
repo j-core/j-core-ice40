@@ -20,7 +20,9 @@ ghdl -a cpu.vhd decode.vhd decode_core.vhd decode_table.vhd datapath.vhd registe
 ghdl -a decode_table_simple.vhd
 
 # ICE40 FPGA macro block simulations and SOC plumbing
-ghdl -a  data_bus_pkg.vhd monitor_pkg.vhd ram_init.vhd lattice_ebr.vhd bus_monitor.vhd timeout_cnt.vhd cpu_simple_sram.vhd
+ghdl -a  data_bus_pkg.vhd ram_init.vhd lattice_ebr.vhd cpu_simple_sram.vhd
+# A simulated version of a lattice library component needs to use the same
+# library name as the lattice library.
 ghdl -a --work=sb_ice40_components_syn clk_sim.vhd
 ghdl -a cpu_lattice.vhd lattice_tb.vhd
 
